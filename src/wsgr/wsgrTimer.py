@@ -109,7 +109,8 @@ class timer:
         })
         self.queue = {
             'magnet': [],
-            'tank': [],
+            'tank': [],             # 挡枪
+            'chase': [],            # 追击
         }
 
     def phase_start(self):

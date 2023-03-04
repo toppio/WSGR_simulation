@@ -1454,6 +1454,19 @@ class Tuning(SmallShip, CoverShip):
         self.night_anti_sub_atk = NightAntiSubAtk  # 夜战反潜攻击
 
 
+class SSV(Aircraft, Submarine, SmallShip, CoverShip):
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.type = 'SSV'
+        self.flightparam = 10
+
+        self.act_phase_flag.update({
+            'AirPhase': True,
+            'FirstTorpedoPhase': True,
+            'FirstShellingPhase': False,
+            'SecondShellingPhase': False,
+        })
+
 class Fleet(Time):
     def __init__(self, timer):
         super().__init__(timer)

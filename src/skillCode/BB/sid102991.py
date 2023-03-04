@@ -39,14 +39,15 @@ class Skill_102991_2(PrepSkill):
         ).get_target(friend, enemy)
         mid_large.remove(self.master)
 
-        target = np.random.choice(mid_large)
-        _skill = target.get_raw_skill()  # 获得其技能
-        for skillClass in _skill:
-            # tmp_skill.change_master(self.master)
-            tmp_skill = skillClass(self.timer, self)
-            tmp_skill.change_rate(1)  # 变为100%发动
-            if tmp_skill.is_active(friend, enemy):
-                tmp_skill.activate(friend, enemy)
+        if len(mid_large) > 0:  # 修复没有其他目标让巴尔会报错的问题
+            target = np.random.choice(mid_large)
+            _skill = target.get_raw_skill()  # 获得其技能
+            for skillClass in _skill:
+                # tmp_skill.change_master(self.master)
+                tmp_skill = skillClass(self.timer, self)
+                tmp_skill.change_rate(1)  # 变为100%发动
+                if tmp_skill.is_active(friend, enemy):
+                    tmp_skill.activate(friend, enemy)
 
 
 name = '旁观者'
