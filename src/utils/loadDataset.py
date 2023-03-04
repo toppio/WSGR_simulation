@@ -196,5 +196,6 @@ class Dataset:
             'enemy': [list(point.iloc[4:11]),
                       list(point.iloc[17:24]),
                       list(point.iloc[30:37])],
+            'isSupportUse': point.loc['是否可用支援']    #增加支援开关
         }
         return status

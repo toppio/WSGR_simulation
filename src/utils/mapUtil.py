@@ -36,6 +36,14 @@ class MapUtil(Time):
             p.set_type(getattr(battleUtil, battle_type))
             roundabout = status.pop('roundabout')
             p.set_roundabout(roundabout)
+            isSupportUse = status.pop('isSupportUse')
+            if isSupportUse == '':
+                isSupportUse = 0
+            else:
+                isSupportUse = int(isSupportUse)
+
+            p.set_isSupportUse(isSupportUse)
+
 
             # 生成深海舰队
             enemy_list = []
@@ -205,6 +213,7 @@ class Point:
         self.roundabout = None
         self.enemy_list = []
         self.suc = {}
+        self.isSupportUse = 0
 
         self.battle = None
 
@@ -229,6 +238,9 @@ class Point:
 
     def set_suc(self, suc_dic):
         self.suc = suc_dic
+
+    def set_isSupportUse(self, isSupportUse):
+        self.isSupportUse = isSupportUse
 
     def start(self, timer, friend):
         """创建战斗类并移动到下个点"""

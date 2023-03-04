@@ -169,7 +169,15 @@ class SupportPhase(AllPhase):
         supportUnit = Ship(self.timer)
         supportUnit.set_status('name', '支援攻击')
         supportUnit.set_side(1)
+        atk_list = []
         for ship in self.enemy.ship:
+            if ship.type == 'SS' or \
+                ship.type == 'SC' or \
+                ship.type == 'SSV':
+                continue
+            else:
+                atk_list.append(ship)
+        for ship in atk_list:
             atk = SupportAtk(
                 timer=self.timer,
                 atk_body=supportUnit,

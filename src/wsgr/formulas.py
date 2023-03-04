@@ -430,7 +430,7 @@ class SupportAtk(ATK):
         return self.end_atk(damage_flag, damage)
 
     def formula(self):
-        damage = np.random.uniform(60, 100)
+        damage = np.random.uniform(70, 90)
         return np.ceil(damage)
 
     def end_atk(self, damage_flag, damage_value):

@@ -215,6 +215,8 @@ class NormalBattle(BattleUtil):
         self.battle_init()
         self.start_phase()
         self.run_phase(BuffPhase)
+        if self.timer.point.isSupportUse == 1:
+            self.run_phase(SupportPhase)
         self.run_phase(AirPhase)
         self.run_phase(TLockPhase)
         self.run_phase(FirstMissilePhase)
