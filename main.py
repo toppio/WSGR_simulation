@@ -60,7 +60,8 @@ if __name__ == '__main__':
     #     print(f"accuracy: {accuracy}")
     #     for ship in battle.enemy.ship:
     #         ship.status['accuracy'] = accuracy
-    run_victory(battle, 250)
+    run_victory(battle, 250)      # 跑胜率
+    # run_avg_damage(battle, 10000)
     # for hit_rate in np.arange(0.5, 1, 0.05):
     #     hit_rate = np.round(hit_rate, 2)
     #     print(f"hit_rate: {hit_rate}")

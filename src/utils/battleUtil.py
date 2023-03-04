@@ -46,6 +46,14 @@ class BattleUtil(Time):
             tmp_skill = skill(self.timer)
             self.timer.env_skill.append(tmp_skill)
 
+        # todo 菜谱
+        # todo 工程局
+        # todo 粗略的等级补正（用以模拟低级情形，主要是命中、索敌、回避的下降）
+        from src.utils.OtherBuffUtil import Other
+        for skill in Other[:]:
+            tmp_skill = skill(self.timer)
+            self.timer.env_skill.append(tmp_skill)
+
         self.friend_init()
         self.enemy_init()
 
