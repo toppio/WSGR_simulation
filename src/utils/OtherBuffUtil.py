@@ -164,10 +164,65 @@ class EngineeringBureau_DD(Skill):
                 timer=timer,
                 name='final_damage_buff',
                 phase=TorpedoPhase,
-                value=0.25
+                value=0.05
             )
         ]
 
+# 工程局加成 导战公共
+class EngineeringBureau_BBG(Skill):
+    def __init__(self, timer):
+        super().__init__(timer, master=None)
+        self.target = TypeTarget(side=1, shiptype=BBG)
+        self.buff = [
+            CommonBuff(
+                timer=timer,
+                name='antiair',
+                phase=AllPhase,
+                value=5,
+                bias_or_weight=0
+            ),
+            CommonBuff(
+                timer=timer,
+                name='fire',
+                phase=AllPhase,
+                value=5,
+                bias_or_weight=0
+            ),
+            CommonBuff(
+                timer=timer,
+                name='accuracy',
+                phase=AllPhase,
+                value=5,
+                bias_or_weight=0
+            ),
+            CommonBuff(
+                timer=timer,
+                name='evasion',
+                phase=AllPhase,
+                value=5,
+                bias_or_weight=0
+            ),
+            CommonBuff(
+                timer=timer,
+                name='recon',
+                phase=AllPhase,
+                value=5,
+                bias_or_weight=0
+            ),
+            CoeffBuff(
+                timer=timer,
+                name='crit',
+                phase=AllPhase,
+                value=0.03,
+                bias_or_weight=0
+            ),
+            FinalDamageBuff(
+                timer=timer,
+                name='final_damage_buff',
+                phase=FirstMissilePhase,
+                value=0.05
+            )
+        ]
 
-
-Other = [FoodSkill,CollectionSkill_1,CollectionSkill_2,CollectionSkill_3,EngineeringBureau_BB,EngineeringBureau_DD]
+Other = [CollectionSkill_1,CollectionSkill_2,CollectionSkill_3,EngineeringBureau_BB,EngineeringBureau_DD]
+# Other = []

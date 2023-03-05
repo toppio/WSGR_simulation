@@ -205,6 +205,54 @@ class BattleUtil(Time):
 
         return self.timer.log
 
+    # 迂回接口
+    def roundabout(self):
+        if self.timer.point.roundabout == 0:
+            return False
+
+        from src.wsgr.ship import Submarine
+        sub_num = self.enemy.count(Submarine)
+        if sub_num != len(self.enemy.ship):
+            friend_recon = self.friend.status['recon']
+            enemy_recon = self.enemy.status['recon']
+            d_recon = friend_recon - enemy_recon
+
+            recon_rate = 0.5 + d_recon * 0.05
+            recon_rate = max(0, recon_rate)
+            recon_rate = min(1, recon_rate)
+
+            verify = np.random.random()
+            if verify > recon_rate:
+                self.timer.log['record'] += f'索敌失败，不能迂回！\n'
+                return False
+        else:
+            friend_recon = self.friend.status['antisub_recon']
+            enemy_level = 0
+            for tmp_ship in self.enemy.ship:
+                enemy_level += tmp_ship.level
+
+            if friend_recon < enemy_level:
+                self.timer.log['record'] += f'遭遇纯潜艇队，索敌失败，不能迂回！\n'
+                return False
+
+        for tmp_ship in self.friend.ship:
+            tmp_ship.supply_oil = max(0., tmp_ship.supply_oil - 0.1)  # 扣除迂回消耗
+
+        friend_speed = self.friend.get_fleet_speed()
+        enemy_speed = self.enemy.get_fleet_speed()
+        d_fleet_speed = int(friend_speed - enemy_speed)
+        roundabout_rate = np.floor(50 * pow(2, d_fleet_speed / 5) - 20) / 100
+        roundabout_rate = max(0.05, roundabout_rate)
+        roundabout_rate = min(0.95, roundabout_rate)
+        self.timer.log['record'] += f'迂回成功率{roundabout_rate * 100:.2f}%\n'
+        verify = np.random.random()
+        if verify <= roundabout_rate:
+            self.timer.log['record'] += f'在{self.timer.point.name}点迂回成功\n'
+            return True
+        else:
+            self.timer.log['record'] += f'在{self.timer.point.name}点迂回失败\n'
+            return False
+
 
 class Entrance(BattleUtil):
     """地图入口"""
@@ -221,6 +269,8 @@ class NormalBattle(BattleUtil):
     def start(self):
         """进行战斗流程"""
         self.battle_init()
+        if self.roundabout():
+            return
         self.start_phase()
         self.run_phase(BuffPhase)
         if self.timer.point.isSupportUse == 1:

@@ -1,0 +1,61 @@
+class FoodSkill(Skill):
+    """S国舰船炮击战造成的伤害增加10%"""
+    def __init__(self, timer):
+        super().__init__(timer, master=None)
+        self.target = CountryTarget(side=1, country='S')
+        self.buff = [
+            FinalDamageBuff(
+                timer=timer,
+                name='final_damage_buff',
+                phase=ShellingPhase,
+                value=0.1,
+            )
+        ]
+
+# 藏品加成-1
+class CollectionSkill_1(Skill):
+    """所有驱逐舰鱼雷+3"""
+    def __init__(self, timer):
+        super().__init__(timer, master=None)
+        self.target = TypeTarget(side=1, shiptype=DD)
+        self.buff = [
+            CommonBuff(
+                timer=timer,
+                name='torpedo',
+                phase=AllPhase,
+                value=3,
+                bias_or_weight=0
+            )
+        ]
+
+# 藏品加成-2
+class CollectionSkill_2(Skill):
+    """所有战列火力+2"""
+    def __init__(self, timer):
+        super().__init__(timer, master=None)
+        self.target = TypeTarget(side=1, shiptype=BB)
+        self.buff = [
+            CommonBuff(
+                timer=timer,
+                name='fire',
+                phase=AllPhase,
+                value=2,
+                bias_or_weight=0
+            )
+        ]
+
+# 藏品加成-3
+class CollectionSkill_3(Skill):
+    """S火力+2"""
+    def __init__(self, timer):
+        super().__init__(timer, master=None)
+        self.target = CountryTarget(side=1, country='S')
+        self.buff = [
+            CommonBuff(
+                timer=timer,
+                name='fire',
+                phase=AllPhase,
+                value=2,
+                bias_or_weight=0
+            )
+        ]

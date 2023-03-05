@@ -17,6 +17,16 @@
 			<Strategy stid="131" level="3"/>
 		</Ship>
 //驱逐
+        <!--		Z17,战术配好，注意无反潜-->
+		<Ship loc="1" cid="11269" level="110" affection="200" skill="1">
+			<Equipment loc="1" eid="10590"/>
+			<Equipment loc="2" eid="10592"/>
+			<Equipment loc="3" eid="10592"/>
+			<Strategy stid="212" level="3"/>
+			<Strategy stid="322" level="3"/>
+			<Strategy stid="131" level="3"/>
+<!--			<Equipment loc="4" eid="10509"/>-->
+		</Ship>
 		<!--		明斯克-->
 		<Ship loc="3" cid="11316" level="110" affection="200" skill="1">
 			<Equipment loc="1" eid="10592"/>
@@ -47,5 +57,13 @@
 			<Equipment loc="2" eid="10627"/>
 			<Equipment loc="3" eid="10592"/>
 <!--			<Equipment loc="4" eid="10509"/>-->
+<!--			<Strategy stid="131" level="3"/>-->
+		</Ship>
+		<!--		布雷恩-->
+		<Ship loc="2" cid="11092" level="110" affection="200" skill="1">
+			<Equipment loc="1" eid="10398"/>
+			<Equipment loc="2" eid="10398"/>
+			<Equipment loc="3" eid="10518"/>
+<!--			<Equipment loc="4" eid="10413"/>-->
 <!--			<Strategy stid="131" level="3"/>-->
 		</Ship>
