@@ -67,3 +67,13 @@
 <!--			<Equipment loc="4" eid="10413"/>-->
 <!--			<Strategy stid="131" level="3"/>-->
 		</Ship>
+		<!--吹雪，负责反潜-->
+		<Ship loc="6" cid="11064" level="110" affection="200" skill="2">
+			<Equipment loc="1" eid="10627"/>
+			<Equipment loc="2" eid="10540"/>
+			<Equipment loc="3" eid="10560"/>
+<!--			<Strategy stid="111" level="3"/>-->
+<!--			<Strategy stid="131" level="3"/>-->
+<!--			<Equipment loc="4" eid="10509"/>-->
+<!--			<Strategy stid="131" level="3"/>-->
+		</Ship>

@@ -224,5 +224,5 @@ class EngineeringBureau_BBG(Skill):
             )
         ]
 
-Other = [CollectionSkill_1,CollectionSkill_2,CollectionSkill_3,EngineeringBureau_BB,EngineeringBureau_DD]
-# Other = []
+# Other = [CollectionSkill_1,CollectionSkill_2,CollectionSkill_3,EngineeringBureau_BB,EngineeringBureau_DD]
+Other = []
