@@ -42,12 +42,10 @@ class Skill_111681_2(Skill):
 
 class DamageBasedBuff(SpecialBuff):
     def is_active(self, *args, **kwargs):
-        if isinstance(self.timer.phase, self.phase):
-            damage = self.master.created_damage.get('FirstShellingPhase', 0) + \
-                     self.master.created_damage.get('SecondShellingPhase', 0)
-            return damage == 0
-        else:
-            return 0
+        damage = self.master.created_damage.get('FirstShellingPhase', 0) + \
+                 self.master.created_damage.get('SecondShellingPhase', 0)
+        return isinstance(self.timer.phase, self.phase) and \
+               damage == 0
 
 
 name = '雷击特快'
