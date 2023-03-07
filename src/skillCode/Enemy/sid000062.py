@@ -23,7 +23,7 @@ class Skill_000062(Skill):
             ),
             AtkHitBuff(
                 timer=timer,
-                name='get_atk',
+                name='atk_be_hit',
                 phase=ShellingPhase,
                 buff=[
                     SpecialBuff(

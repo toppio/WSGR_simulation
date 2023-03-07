@@ -16,6 +16,62 @@
 			<Equipment loc="4" eid="10509"/>
 			<Strategy stid="131" level="3"/>
 		</Ship>
+				<!--胡德-->
+		<Ship loc="1" cid="11001" level="110" affection="200" skill="1">
+			<Equipment loc="1" eid="10600"/>
+			<Equipment loc="2" eid="10302"/>
+			<Equipment loc="3" eid="10625"/>
+			<Equipment loc="4" eid="10130"/>
+<!--			<Strategy stid="211" level="3"/>-->
+<!--			<Strategy stid="123" level="3"/>-->
+<!--			<Strategy stid="131" level="3"/>-->
+		</Ship>
+		<!--蒙大拿-->
+		<Ship loc="2" cid="10520" level="110" affection="200" skill="1">
+			<Equipment loc="1" eid="10610"/>
+			<Equipment loc="2" eid="10602"/>
+			<Equipment loc="3" eid="10534"/>
+			<Equipment loc="4" eid="10364"/>
+<!--			<Strategy stid="212" level="3"/>-->
+<!--			<Strategy stid="322" level="3"/>-->
+<!--			<Strategy stid="232" level="3"/>-->
+<!--			<Equipment loc="4" eid="10413"/>-->
+<!--			<Strategy stid="131" level="3"/>-->
+		</Ship>
+		<!--黎塞留-->
+		<Ship loc="3" cid="11113" level="110" affection="200" skill="1">
+			<Equipment loc="1" eid="10495"/>
+			<Equipment loc="2" eid="10507"/>
+			<Equipment loc="3" eid="10222"/>
+			<Equipment loc="3" eid="10477"/>
+<!--			<Strategy stid="111" level="3"/>-->
+<!--			<Strategy stid="131" level="3"/>-->
+<!--			<Equipment loc="4" eid="10509"/>-->
+<!--			<Strategy stid="131" level="3"/>-->
+		</Ship>
+		<!--圣乔治-->
+		<Ship loc="4" cid="11380" level="110" affection="200" skill="1">
+			<Equipment loc="1" eid="10562"/>
+			<Equipment loc="2" eid="10026"/>
+			<Equipment loc="3" eid="10526"/>
+			<Equipment loc="3" eid="10310"/>
+<!--			<Strategy stid="111" level="3"/>-->
+<!--			<Strategy stid="131" level="3"/>-->
+<!--			<Equipment loc="4" eid="10509"/>-->
+<!--			<Strategy stid="131" level="3"/>-->
+		</Ship>
+		<!--无敌-->
+		<Ship loc="5" cid="10461" level="110" affection="200" skill="1">
+			<Equipment loc="1" eid="10616"/>
+			<Equipment loc="2" eid="10551"/>
+			<Equipment loc="3" eid="10604"/>
+			<Equipment loc="3" eid="10364"/>
+<!--			<Strategy stid="111" level="3"/>-->
+<!--			<Strategy stid="131" level="3"/>-->
+<!--			<Equipment loc="4" eid="10509"/>-->
+<!--			<Strategy stid="131" level="3"/>-->
+		</Ship>
+
 //驱逐
         <!--		Z17,战术配好，注意无反潜-->
 		<Ship loc="1" cid="11269" level="110" affection="200" skill="1">
@@ -74,6 +130,23 @@
 			<Equipment loc="3" eid="10560"/>
 <!--			<Strategy stid="111" level="3"/>-->
 <!--			<Strategy stid="131" level="3"/>-->
+<!--			<Equipment loc="4" eid="10509"/>-->
+<!--			<Strategy stid="131" level="3"/>-->
+		</Ship>
+				<!--诺福克-->
+		<Ship loc="6" cid="11496" level="110" affection="200" skill="1">
+			<Equipment loc="1" eid="10540"/>
+			<Equipment loc="2" eid="10627"/>
+			<Equipment loc="3" eid="10592"/>
+<!--			<Equipment loc="4" eid="10509"/>-->
+<!--			<Strategy stid="131" level="3"/>-->
+		</Ship>
+//巡洋
+<!--海伦娜-->
+		<Ship loc="6" cid="11059" level="110" affection="200" skill="1">
+			<Equipment loc="1" eid="10592"/>
+			<Equipment loc="2" eid="10389"/>
+			<Equipment loc="3" eid="10361"/>
 <!--			<Equipment loc="4" eid="10509"/>-->
 <!--			<Strategy stid="131" level="3"/>-->
 		</Ship>
