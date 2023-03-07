@@ -41,6 +41,32 @@ def run_victory(battle, epoc):
     # result = result / epoc * 100
     # return result
 
+#指定目标点，跑劝退率、到点后胜率，必须在跑全图时使用
+def run_map(battle,epoc):
+    result = [0] * 6
+    result_flag_list = ['SS', 'S', 'A', 'B', 'C', 'D']
+    enter_count = 0
+
+    for i in range(epoc):
+        point = 'U'     #设定目标点
+        tmp_battle = copy.deepcopy(battle)
+        tmp_battle.start()
+        log = tmp_battle.report()
+
+        if log['end_with'] == point:
+            enter_count += 1
+            result_flag_id = result_flag_list.index(log['result'])
+            result[result_flag_id] += 1
+            print("\r"
+                  f"第{i + 1}次 - 抵达指定点概率：{enter_count / (i+1) * 100:.2f}%"
+                  f"战果分布: "
+                  f"SS {result[0] / (i + 1) * 100:.2f}% "
+                  f"S {result[1] / (i + 1) * 100:.2f}% "
+                  f"A {result[2] / (i + 1) * 100:.2f}% "
+                  f"B {result[3] / (i + 1) * 100:.2f}% "
+                  f"C {result[4] / (i + 1) * 100:.2f}% "
+                  f"D {result[5] / (i + 1) * 100:.2f}% ",
+                  end='',)
 
 if __name__ == '__main__':
     configDir = os.path.join(os.path.dirname(srcDir), 'config')
@@ -60,7 +86,8 @@ if __name__ == '__main__':
     #     print(f"accuracy: {accuracy}")
     #     for ship in battle.enemy.ship:
     #         ship.status['accuracy'] = accuracy
-    run_victory(battle, 1)      # 跑胜率
+    # run_victory(battle, 1)      # 跑胜率
+    run_map(battle, 50)
     # run_avg_damage(battle, 10000)
     # for hit_rate in np.arange(0.5, 1, 0.05):
     #     hit_rate = np.round(hit_rate, 2)
