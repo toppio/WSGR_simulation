@@ -7,7 +7,7 @@ from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
 
-"""无视战损。炮击战阶段受到伤害后，免疫下一次受到的伤害。每一个阶段开始时，免疫本阶段受到的第一次伤害（支援阶段除外）。"""
+"""无视战损。炮击战阶段受到伤害后，免疫下一次受到的伤害。每一个阶段开始时，免疫本阶段受到的第一次伤害（支援阶段与炮击战除外）。"""
 
 
 class Skill_000063(Skill):
@@ -35,16 +35,6 @@ class Skill_000063(Skill):
                 timer=timer,
                 name='shield',
                 phase=FirstTorpedoPhase,
-                exhaust=1),
-            SpecialBuff(
-                timer=timer,
-                name='shield',
-                phase=FirstShellingPhase,
-                exhaust=1),
-            SpecialBuff(
-                timer=timer,
-                name='shield',
-                phase=SecondShellingPhase,
                 exhaust=1),
             SpecialBuff(
                 timer=timer,

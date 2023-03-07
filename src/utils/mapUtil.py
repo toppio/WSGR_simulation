@@ -254,6 +254,14 @@ class Point:
 
         if len(self.enemy_list) != 0:
             enemy = np.random.choice(self.enemy_list)
+            count_firstTorpedo = 0
+            for tmpship in enemy.ship:
+                if tmpship.type == 'SS' or \
+                    tmpship.type == 'SC' or \
+                    tmpship.type == 'CLT':
+                    count_firstTorpedo += 1
+            if count_firstTorpedo >= 3 and self.level != 5:
+                friend.set_form(5)
             self.battle = self.type(timer, friend, enemy)
         else:
             self.battle = self.type(timer, friend, None)

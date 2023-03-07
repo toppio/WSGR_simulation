@@ -46,19 +46,23 @@ def run_map(battle,epoc):
     result = [0] * 6
     result_flag_list = ['SS', 'S', 'A', 'B', 'C', 'D']
     enter_count = 0
+    snipe_count = 0 # 斩杀BOSS次数
 
     for i in range(epoc):
-        point = 'U'     #设定目标点
+        point = 'T'     #设定目标点
         tmp_battle = copy.deepcopy(battle)
         tmp_battle.start()
         log = tmp_battle.report()
 
         if log['end_with'] == point:
             enter_count += 1
+            if log['end_health'][0][0] == 0:
+                snipe_count += 1
             result_flag_id = result_flag_list.index(log['result'])
             result[result_flag_id] += 1
             print("\r"
                   f"第{i + 1}次 - 抵达指定点概率：{enter_count / (i+1) * 100:.2f}%"
+                  f"斩杀率：{snipe_count / enter_count * 100:.2f}%"
                   f"战果分布: "
                   f"SS {result[0] / (i + 1) * 100:.2f}% "
                   f"S {result[1] / (i + 1) * 100:.2f}% "
@@ -87,7 +91,7 @@ if __name__ == '__main__':
     #     for ship in battle.enemy.ship:
     #         ship.status['accuracy'] = accuracy
     # run_victory(battle, 1)      # 跑胜率
-    run_map(battle, 50)
+    run_map(battle, 100)
     # run_avg_damage(battle, 10000)
     # for hit_rate in np.arange(0.5, 1, 0.05):
     #     hit_rate = np.round(hit_rate, 2)
