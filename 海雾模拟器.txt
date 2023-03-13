@@ -1,3 +1,12 @@
+暂定剧本
+Ex-1 风暴来临 Boss:Takao[Fog]
+Ex-2 港区急袭战 Boss:Kirishima&Haruna[Fog]
+Ex-3 “朋友” Boss:Yamato[Fog Mode] Taiho[Fog Mode]   *双Boss
+Ex-4 “分离”行动 Boss:Kongo[Fog]     *Counter Attack Operation Detachment II 硫磺岛战役2
+Ex-5 战术论考验 Boss:Lexington[Fog]
+Ex-6 最终裁决 Boss:Bismarck[Fog]
+
+
 按照KC的模拟标准设计，仅控制功勋配置S率（斩杀率可以通过特化配队达到100%左右）
 E1 0.9-1
 E2 0.7-0.8
