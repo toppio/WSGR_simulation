@@ -110,7 +110,8 @@ class BattleUtil(Time):
         self.timer.run_end_skill(self.friend, self.enemy)
 
         # 资源消耗
-        self.supply_cost()
+        if not self.timer.round_flag:
+            self.supply_cost()
 
         # 受伤记录
         self.timer.log['end_health'] = {
@@ -189,8 +190,8 @@ class BattleUtil(Time):
 
         # 伤害量
         self.timer.log['create_damage'] = {
-            1: [sum(ship.created_damage.values()) for ship in self.friend.ship],
-            0: [sum(ship.created_damage.values()) for ship in self.enemy.ship]
+            1: [ship.created_damage for ship in self.friend.ship],
+            0: [ship.created_damage for ship in self.enemy.ship]
         }
 
         # 消耗
@@ -204,54 +205,6 @@ class BattleUtil(Time):
         self.timer.log['supply'] = supply
 
         return self.timer.log
-
-    # 迂回接口
-    def roundabout(self):
-        if self.timer.point.roundabout == 0:
-            return False
-
-        from src.wsgr.ship import Submarine
-        sub_num = self.enemy.count(Submarine)
-        if sub_num != len(self.enemy.ship):
-            friend_recon = self.friend.status['recon']
-            enemy_recon = self.enemy.status['recon']
-            d_recon = friend_recon - enemy_recon
-
-            recon_rate = 0.5 + d_recon * 0.05
-            recon_rate = max(0, recon_rate)
-            recon_rate = min(1, recon_rate)
-
-            verify = np.random.random()
-            if verify > recon_rate:
-                self.timer.log['record'] += f'索敌失败，不能迂回！\n'
-                return False
-        else:
-            friend_recon = self.friend.status['antisub_recon']
-            enemy_level = 0
-            for tmp_ship in self.enemy.ship:
-                enemy_level += tmp_ship.level
-
-            if friend_recon < enemy_level:
-                self.timer.log['record'] += f'遭遇纯潜艇队，索敌失败，不能迂回！\n'
-                return False
-
-        for tmp_ship in self.friend.ship:
-            tmp_ship.supply_oil = max(0., tmp_ship.supply_oil - 0.1)  # 扣除迂回消耗
-
-        friend_speed = self.friend.get_fleet_speed()
-        enemy_speed = self.enemy.get_fleet_speed()
-        d_fleet_speed = int(friend_speed - enemy_speed)
-        roundabout_rate = np.floor(50 * pow(2, d_fleet_speed / 5) - 20) / 100
-        roundabout_rate = max(0.05, roundabout_rate)
-        roundabout_rate = min(0.95, roundabout_rate)
-        self.timer.log['record'] += f'迂回成功率{roundabout_rate * 100:.2f}%\n'
-        verify = np.random.random()
-        if verify <= roundabout_rate:
-            self.timer.log['record'] += f'在{self.timer.point.name}点迂回成功\n'
-            return True
-        else:
-            self.timer.log['record'] += f'在{self.timer.point.name}点迂回失败\n'
-            return False
 
 
 class Entrance(BattleUtil):
@@ -269,11 +222,12 @@ class NormalBattle(BattleUtil):
     def start(self):
         """进行战斗流程"""
         self.battle_init()
-        if self.roundabout():
-            return
         self.start_phase()
+        if self.timer.round_flag:
+            self.end_phase()
+            return
         self.run_phase(BuffPhase)
-        if self.timer.point.isSupportUse == 1:
+        if (self.timer.point is not None) and (self.timer.point.isSupportUse == 1):
             self.run_phase(SupportPhase)
         self.run_phase(AirPhase)
         self.run_phase(TLockPhase)
@@ -296,6 +250,9 @@ class AirBattle(BattleUtil):
         """进行战斗流程"""
         self.battle_init()
         self.start_phase()
+        if self.timer.round_flag:
+            self.end_phase()
+            return
         self.run_phase(BuffPhase)
         self.run_phase(AirPhase)
         self.run_phase(TLockPhase)
@@ -316,6 +273,9 @@ class NightBattle(BattleUtil):
         """进行战斗流程"""
         self.battle_init()
         self.start_phase()
+        if self.timer.round_flag:
+            self.end_phase()
+            return
         self.run_phase(BuffPhase)
         self.run_phase(TLockPhase)
         self.run_phase(NightPhase)
