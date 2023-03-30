@@ -106,7 +106,6 @@ class PreparePhase(AllPhase):
 	    # 迂回检定
 	    rd_rate = np.floor(50 * 2 ** (d_fleet_speed / 5) - 20) / 100
 	    rd_rate = rform.cap(rd_rate)
-		self.timer.log['record'] += f'迂回成功率{rd_rate * 100:.2f}%\n'
 	    verify = np.random.random()
 	    if verify <= rd_rate:
 	    	return True
