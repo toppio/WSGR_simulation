@@ -53,7 +53,7 @@ class Skill_105341_2(Skill):
         self.buff = [
             ActPhaseBuff(
                 timer=timer,
-                name='not_act_phase',
+                name='no_normal_atk',
                 phase=FirstShellingPhase
             ),
             ChaseAtkBuff(

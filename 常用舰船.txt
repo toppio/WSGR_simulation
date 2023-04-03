@@ -150,3 +150,21 @@
 <!--			<Equipment loc="4" eid="10509"/>-->
 <!--			<Strategy stid="131" level="3"/>-->
 		</Ship>
+//潜艇
+<!--肥鱼-->
+		<Ship loc="5" cid="11408" level="110" affection="200" skill="1">
+			<Equipment loc="1" eid="10513"/>
+			<Equipment loc="2" eid="10513"/>
+			<Equipment loc="3" eid="10513"/>
+<!--			<Equipment loc="4" eid="10509"/>-->
+<!--			<Strategy stid="131" level="3"/>-->
+		</Ship>
+//导弹系
+<!--肥鱼-->
+		<Ship loc="5" cid="11408" level="110" affection="200" skill="1">
+			<Equipment loc="1" eid="10513"/>
+			<Equipment loc="2" eid="10513"/>
+			<Equipment loc="3" eid="10513"/>
+<!--			<Equipment loc="4" eid="10509"/>-->
+<!--			<Strategy stid="131" level="3"/>-->
+		</Ship>
