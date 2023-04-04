@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-# Author:银河远征
+# Author:KS Mist*
 # env:py38
 # 深海大和（雾化）
 

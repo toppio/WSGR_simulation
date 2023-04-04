@@ -30,6 +30,7 @@ class AllTarget(Target):
 
 class EnvSkill_1(Skill):
     """猪飞：大型船伤害+60%"""
+
     def __init__(self, timer):
         super().__init__(timer, master=None)
         self.target = TypeTarget(side=1, shiptype=LargeShip)
@@ -66,6 +67,7 @@ class EnvSkill_1(Skill):
 
 class EnvSkill_2(Skill):
     """猪飞：中型船伤害+60%"""
+
     def __init__(self, timer):
         super().__init__(timer, master=None)
         self.target = TypeTarget(side=1, shiptype=MidShip)
@@ -102,6 +104,7 @@ class EnvSkill_2(Skill):
 
 class EnvSkill_3(Skill):
     """猪飞：小型船伤害+60%"""
+
     def __init__(self, timer):
         super().__init__(timer, master=None)
         self.target = TypeTarget(side=1, shiptype=SmallShip)
@@ -138,6 +141,7 @@ class EnvSkill_3(Skill):
 
 class EnvSkill_4(Skill):
     """航巡全阶段必中"""
+
     def __init__(self, timer):
         super().__init__(timer, master=None)
         self.target = TypeTarget(side=1, shiptype=CAV)
@@ -147,6 +151,85 @@ class EnvSkill_4(Skill):
                 name='must_hit',
                 phase=AllPhase
             )
+        ]
+
+
+class EnvSkill_FirstTorpedo(Skill):
+    """轻巡、重巡、驱逐可以参与先制雷击"""
+
+    def __init__(self, timer):
+        super().__init__(timer, master=None)
+        self.target = TypeTarget(side=1, shiptype=(CA, CL, DD))
+        self.buff = [
+            ActPhaseBuff(
+                timer,
+                name='act_phase',
+                phase=FirstTorpedoPhase,
+                rate=1
+            )
+        ]
+
+
+class EnvSkill_EscortEvasion(Skill):
+    """护卫舰回避+5/10/20"""
+
+    def __init__(self, timer):
+        super().__init__(timer, master=None)
+        self.target = TypeTarget(side=1, shiptype=CoverShip)
+        self.buff = [
+            StatusBuff(
+                timer,
+                name='evasion',
+                phase=AllPhase,
+                value=20,
+                bias_or_weight=0)
+        ]
+
+
+class EnvSkill_EscortTorpedo(Skill):
+    """护卫舰鱼雷+5/10/20"""
+
+    def __init__(self, timer):
+        super().__init__(timer, master=None)
+        self.target = TypeTarget(side=1, shiptype=CoverShip)
+        self.buff = [
+            StatusBuff(
+                timer,
+                name='torpedo',
+                phase=AllPhase,
+                value=20,
+                bias_or_weight=0)
+        ]
+
+
+class EnvSkill_SmallAmor(Skill):
+    """小型船装甲+5/10/20"""
+
+    def __init__(self, timer):
+        super().__init__(timer, master=None)
+        self.target = TypeTarget(side=1, shiptype=SmallShip)
+        self.buff = [
+            StatusBuff(
+                timer,
+                name='armor',
+                phase=AllPhase,
+                value=20,
+                bias_or_weight=0)
+        ]
+
+class EnvSkill_AllSpeed(Skill):
+    """我方全体航速+1/2/4"""
+
+    def __init__(self, timer):
+        super().__init__(timer, master=None)
+        self.target = TypeTarget(side=1, shiptype=Ship)
+        self.buff = [
+            StatusBuff(
+                timer,
+                name='speed',
+                phase=AllPhase,
+                value=4,
+                bias_or_weight=0)
         ]
 
 

@@ -100,9 +100,9 @@ class Skill_110941_4(CommonSkill):
                 # 复制所有属性
                 new_equip.copy_equip(tmp_equip)
                 # 发射器的索敌值视为对潜值
-                if(tmp_equip.status['recon'] is not None):
-                    new_equip.set_status('antisub', tmp_equip.status['recon'])
-                    new_equip_list.append(new_equip)
+                recon = tmp_equip.status.get('recon', 0)
+                new_equip.set_status('antisub', recon)
+                new_equip_list.append(new_equip)
             else:
                 new_equip_list.append(tmp_equip)
         self.master.set_equipment(new_equip_list)

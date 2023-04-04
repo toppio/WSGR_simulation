@@ -49,7 +49,7 @@ def run_map(battle,epoc):
     snipe_count = 0 # 斩杀BOSS次数
 
     for i in range(epoc):
-        point = 'K'     #设定目标点
+        point = 'K'     # 设定目标点
         tmp_battle = copy.deepcopy(battle)
         tmp_battle.start()
         log = tmp_battle.report()
@@ -91,7 +91,7 @@ if __name__ == '__main__':
     #     for ship in battle.enemy.ship:
     #         ship.status['accuracy'] = accuracy
     # run_victory(battle, 1)      # 跑胜率
-    run_map(battle, 1)
+    run_map(battle, 2000)
     # run_avg_damage(battle, 10000)
     # for hit_rate in np.arange(0.5, 1, 0.05):
     #     hit_rate = np.round(hit_rate, 2)

@@ -214,9 +214,12 @@ class Ship(Time):
         for tmp_equip in self.equipment:
             e_skill, e_value = tmp_equip.get_skill()
             if len(e_skill):
-                assert len(e_skill) == 1
-                tmp_skill = e_skill[0](self.timer, self, e_value)
-                self.skill.append(tmp_skill)
+                # assert len(e_skill) == 1
+                # tmp_skill = e_skill[0](self.timer, self, e_value)
+                # self.skill.append(tmp_skill)
+                for i in range(len(e_skill)):
+                    tmp_skill = e_skill[i](self.timer, self, e_value)
+                    self.skill.append(tmp_skill)
 
         # 战术
         self.strategy_buff = {}
@@ -387,6 +390,7 @@ class Ship(Time):
 
         else:
             self.temper_buff.append(buff)
+            aaa = 1
 
     def add_strategy_buff(self, buff, stid):
         """增加战术效果"""

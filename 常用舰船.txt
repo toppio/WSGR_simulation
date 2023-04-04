@@ -7,6 +7,13 @@
 			<Equipment loc="4" eid="10413"/>
 			<Strategy stid="131" level="3"/>
 		</Ship>
+		<!--		基阿特-->
+		<Ship loc="1" cid="11094" level="110" affection="200" skill="1">
+			<Equipment loc="1" eid="10552"/>
+			<Equipment loc="2" eid="10631"/>
+			<Equipment loc="3" eid="10567"/>
+<!--			<Equipment loc="4" eid="10509"/>-->
+		</Ship>
 //战系
 //24bis，装备总共10索敌，下位替换5索敌
 <Ship loc="1" cid="10534" level="110" affection="200" skill="1">
@@ -115,6 +122,14 @@
 <!--			<Equipment loc="4" eid="10509"/>-->
 <!--			<Strategy stid="131" level="3"/>-->
 		</Ship>
+		<!--		阳炎-->
+		<Ship loc="4" cid="11166" level="110" affection="200" skill="1">
+			<Equipment loc="1" eid="10560"/>
+			<Equipment loc="2" eid="10511"/>
+			<Equipment loc="3" eid="10340"/>
+<!--			<Equipment loc="4" eid="10509"/>-->
+<!--			<Strategy stid="131" level="3"/>-->
+		</Ship>
 		<!--		布雷恩-->
 		<Ship loc="2" cid="11092" level="110" affection="200" skill="1">
 			<Equipment loc="1" eid="10398"/>
@@ -141,6 +156,14 @@
 <!--			<Equipment loc="4" eid="10509"/>-->
 <!--			<Strategy stid="131" level="3"/>-->
 		</Ship>
+				<!--		萤火虫-->
+		<Ship loc="2" cid="11082" level="110" affection="200" skill="2">
+			<Equipment loc="1" eid="10486"/>
+			<Equipment loc="2" eid="10471"/>
+			<Equipment loc="3" eid="10635"/>
+<!--			<Equipment loc="4" eid="10509"/>-->
+<!--			<Strategy stid="131" level="3"/>-->
+		</Ship>
 //巡洋
 <!--海伦娜-->
 		<Ship loc="6" cid="11059" level="110" affection="200" skill="1">
@@ -151,15 +174,6 @@
 <!--			<Strategy stid="131" level="3"/>-->
 		</Ship>
 //潜艇
-<!--肥鱼-->
-		<Ship loc="5" cid="11408" level="110" affection="200" skill="1">
-			<Equipment loc="1" eid="10513"/>
-			<Equipment loc="2" eid="10513"/>
-			<Equipment loc="3" eid="10513"/>
-<!--			<Equipment loc="4" eid="10509"/>-->
-<!--			<Strategy stid="131" level="3"/>-->
-		</Ship>
-//导弹系
 <!--肥鱼-->
 		<Ship loc="5" cid="11408" level="110" affection="200" skill="1">
 			<Equipment loc="1" eid="10513"/>
