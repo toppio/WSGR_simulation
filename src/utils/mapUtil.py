@@ -283,7 +283,7 @@ class Point:
                 return None
 
             # 油弹耗尽不再前进
-            if tmp_ship.supply_oil <= 0 or tmp_ship.supply_ammo <= 0:
+            if tmp_ship.supply_oil <= 0.0001 or tmp_ship.supply_ammo <= 0.0001:
                 return None
 
         # 带路检定

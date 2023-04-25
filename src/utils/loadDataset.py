@@ -107,6 +107,7 @@ class Dataset:
             'range': int(ship.loc['射程']),  # 射程, 1: 短; 2: 中; 3: 长; 4: 超长
             'luck': int(ship.loc['幸运']),  # 幸运
             'capacity': int(ship.loc['总搭载']),  # 总搭载
+            'tag': ship.loc['标签'],  # 标签
         }
 
         if status['capacity'] != 0:

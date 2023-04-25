@@ -49,7 +49,7 @@ def run_map(battle,epoc):
     snipe_count = 0 # 斩杀BOSS次数
 
     for i in range(epoc):
-        point = 'K'     # 设定目标点
+        point = 'B'     # 设定目标点
         tmp_battle = copy.deepcopy(battle)
         tmp_battle.start()
         log = tmp_battle.report()
@@ -72,6 +72,49 @@ def run_map(battle,epoc):
                   f"D {result[5] / (i + 1) * 100:.2f}% ",
                   end='',)
 
+def run_avg_damage(battle, epoc, phase=None):
+    avg_damage = 0
+    avg_damage_phase = 0
+    retreat_num = 0
+    snipe_count = 0  # 击沉率
+    for i in range(epoc):
+        tmp_battle = copy.deepcopy(battle)
+        tmp_battle.start()
+        log = tmp_battle.report()
+
+        if log['end_health'][0][0] == 0:
+            snipe_count += 1
+        if phase is not None:
+            avg_damage_phase += np.sum([dmg_log.get(phase, 0)
+                                        for dmg_log in log['create_damage'][1]])
+            phase_info = f'{phase}平均伤害: {avg_damage_phase / (i + 1):.3f} '
+        else:
+            phase_info = ''
+        avg_damage += np.sum([sum(dmg_log.values())
+                              for dmg_log in log['create_damage'][1]])
+        retreat_num += log['enemy_retreat_num']
+        print("\r"
+              f"第{i + 1}次 - 平均伤害: {avg_damage / (i + 1):.3f} "
+              f"{phase_info}"
+              f"击沉率：{snipe_count / (i + 1) * 100:.2f}%"
+              f"平均击沉 {retreat_num / (i + 1):.3f}",
+              end='',)
+
+def run_get_damage(battle, epoc, phase=None):
+    avg_get_damage = 0
+    avg_get_hit = 0
+    for i in range(epoc):
+        tmp_battle = copy.deepcopy(battle)
+        tmp_battle.start()
+        log = tmp_battle.report()
+
+        dmg_log = log['got_damage'][1][0]
+        avg_get_damage += dmg_log
+
+        print("\r"
+              f"第{i + 1}次 - 平均受伤害: {avg_get_damage / (i + 1):.3f} ",
+              end='',)
+
 if __name__ == '__main__':
     configDir = os.path.join(os.path.dirname(srcDir), 'config')
     # xml_file = os.path.join(configDir, r'config.xml') # 跑单例
@@ -91,8 +134,9 @@ if __name__ == '__main__':
     #     for ship in battle.enemy.ship:
     #         ship.status['accuracy'] = accuracy
     # run_victory(battle, 1)      # 跑胜率
-    run_map(battle, 2000)
-    # run_avg_damage(battle, 10000)
+    run_map(battle, 1)
+    # run_avg_damage(battle, 2000)
+    # run_get_damage(battle, 2000)
     # for hit_rate in np.arange(0.5, 1, 0.05):
     #     hit_rate = np.round(hit_rate, 2)
     #     print(f"hit_rate: {hit_rate}")

@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 # Author:KS Mist*
 # env:py38
-# 超重力炮·大战舰
+# 超重力炮·轻巡-
 
 from src.wsgr.skill import *
 from src.wsgr.ship import *
@@ -10,8 +10,8 @@ from src.wsgr.phase import *
 """炮击战50%概率触发超重力炮攻击，对2个目标造成100%的伤害（大破无法触发）。"""
 
 
-class Skill_000065(Skill):
-    """炮击战50%概率触发超重力炮攻击，对2-4个目标造成100%的伤害（大破无法触发）。"""
+class Skill_000064(Skill):
+    """炮击战50%概率触发超重力炮攻击，对2个目标造成100%的伤害（大破无法触发）。"""
     def __init__(self, timer, master):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
@@ -20,7 +20,7 @@ class Skill_000065(Skill):
                 timer=timer,
                 name='multi_attack',
                 phase=ShellingPhase,
-                num=4,
+                num=2,
                 rate=0.5
             )
         ]
@@ -68,6 +68,6 @@ class GravityAtkBuff(MultipleAtkBuff):
                isinstance(self.timer.phase, self.phase)
 
 
-name = '超重力炮·大战舰'
-skill = [Skill_000065]
+name = '超重力炮·重巡'
+skill = [Skill_000064]
 

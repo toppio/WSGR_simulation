@@ -153,84 +153,82 @@ class EnvSkill_4(Skill):
             )
         ]
 
+# 以下buff为通过情报局购买的海雾压制词条
+class BuffRequest_FogDD(ATKRequest):
+    def __bool__(self):
+        return isinstance(self.atk.target, (DD, ASDG)) and \
+               self.atk.target.status['tag'] == 'fog'
 
-class EnvSkill_FirstTorpedo(Skill):
-    """轻巡、重巡、驱逐可以参与先制雷击"""
+class EnvSkill_AtkFogDDMustHit(Skill):
+    """以海雾驱逐、导驱为攻击目标时必中"""
 
     def __init__(self, timer):
         super().__init__(timer, master=None)
-        self.target = TypeTarget(side=1, shiptype=(CA, CL, DD))
+        self.target = Target(side=1)
         self.buff = [
-            ActPhaseBuff(
-                timer,
-                name='act_phase',
-                phase=FirstTorpedoPhase,
-                rate=1
+            SpecialBuff(
+                timer=timer,
+                name='must_hit',
+                phase=AllPhase,
+                atk_request=[BuffRequest_FogDD]
             )
         ]
 
-
-class EnvSkill_EscortEvasion(Skill):
-    """护卫舰回避+5/10/20"""
-
-    def __init__(self, timer):
-        super().__init__(timer, master=None)
-        self.target = TypeTarget(side=1, shiptype=CoverShip)
-        self.buff = [
-            StatusBuff(
-                timer,
-                name='evasion',
-                phase=AllPhase,
-                value=20,
-                bias_or_weight=0)
-        ]
-
-
-class EnvSkill_EscortTorpedo(Skill):
-    """护卫舰鱼雷+5/10/20"""
+class EnvSkill_PriorAtkFogDD(Skill):
+    """全阶段优先攻击海雾驱逐、导驱"""
 
     def __init__(self, timer):
         super().__init__(timer, master=None)
-        self.target = TypeTarget(side=1, shiptype=CoverShip)
+        self.target = Target(side=1)
+
         self.buff = [
-            StatusBuff(
-                timer,
-                name='torpedo',
+            PriorTargetBuff(
+                timer=timer,
+                name='prior_type_target',
                 phase=AllPhase,
-                value=20,
-                bias_or_weight=0)
+                target=CombinedTarget(
+                    side=0,
+                    target_list=[TypeTarget(side=0, shiptype=(DD, ASDG)),
+                                 TagTarget(side=0, tag='fog')]
+                ),
+                ordered=False
+            )
         ]
 
-
-class EnvSkill_SmallAmor(Skill):
-    """小型船装甲+5/10/20"""
+class EnvSkill_AtkFogDDDmgBuff(Skill):
+    """以海雾驱逐、导驱为攻击目标时造成的伤害增加40%"""
 
     def __init__(self, timer):
         super().__init__(timer, master=None)
-        self.target = TypeTarget(side=1, shiptype=SmallShip)
+        self.target = Target(side=1)
         self.buff = [
-            StatusBuff(
-                timer,
-                name='armor',
+            FinalDamageBuff(
+                timer=timer,
+                name='final_damage_buff',
                 phase=AllPhase,
-                value=20,
-                bias_or_weight=0)
+                value=0.4,
+                atk_request=[BuffRequest_FogDD]
+            )
         ]
 
-class EnvSkill_AllSpeed(Skill):
-    """我方全体航速+1/2/4"""
+class EnvSkill_FogDDHitDebuff(Skill):
+    """降低海雾驱逐、导驱40%命中率"""
 
     def __init__(self, timer):
         super().__init__(timer, master=None)
-        self.target = TypeTarget(side=1, shiptype=Ship)
+        self.target = CombinedTarget(
+                    side=0,
+                    target_list=[TypeTarget(side=0, shiptype=(DD, ASDG)),
+                                 TagTarget(side=0, tag='fog')])
+
         self.buff = [
-            StatusBuff(
-                timer,
-                name='speed',
+            CoeffBuff(
+                timer=timer,
+                name='hit_rate',
                 phase=AllPhase,
-                value=4,
-                bias_or_weight=0)
+                value=-0.4,
+                bias_or_weight=0
+            )
         ]
 
-
-env = []
+env = [EnvSkill_AtkFogDDMustHit]
