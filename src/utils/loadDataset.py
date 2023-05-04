@@ -152,12 +152,14 @@ class Dataset:
         name_list = ['耐久', '火力', '鱼雷', '装甲', '对潜', '索敌',
                      '命中', '射程', '闪避', '幸运', '轰炸', '对空',
                      '对空倍率', '对空补正', '铝耗',
-                     '导弹突防', '导弹拦截', '导弹防护',
+                     # '导弹突防', '导弹拦截', '导弹防护',      # 导弹防护是个目前来说没有卵用的词条，屏蔽了避免BUG
+                     '导弹突防', '导弹拦截'
                      ]
         eng_name_list = ['health', 'fire', 'torpedo', 'armor', 'antisub', 'recon',
                          'accuracy', 'range', 'evasion', 'luck', 'bomb', 'antiair',
                          'aa_scale', 'aa_coef', 'supply_almn',
-                         'missile_atk', 'missile_def', 'missile_protect',
+                         # 'missile_atk', 'missile_def', 'missile_protect',     # 同上
+                         'missile_atk', 'missile_def'
                          ]
 
         status = {

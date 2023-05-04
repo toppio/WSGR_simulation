@@ -46,10 +46,10 @@ def run_map(battle,epoc):
     result = [0] * 6
     result_flag_list = ['SS', 'S', 'A', 'B', 'C', 'D']
     enter_count = 0
-    snipe_count = 0 # 斩杀BOSS次数
+    snipe_count = 0     # 斩杀BOSS次数
 
     for i in range(epoc):
-        point = 'B'     # 设定目标点
+        point = 'K'     # 设定目标点
         tmp_battle = copy.deepcopy(battle)
         tmp_battle.start()
         log = tmp_battle.report()
@@ -134,7 +134,7 @@ if __name__ == '__main__':
     #     for ship in battle.enemy.ship:
     #         ship.status['accuracy'] = accuracy
     # run_victory(battle, 1)      # 跑胜率
-    run_map(battle, 1)
+    run_map(battle, 1000)
     # run_avg_damage(battle, 2000)
     # run_get_damage(battle, 2000)
     # for hit_rate in np.arange(0.5, 1, 0.05):

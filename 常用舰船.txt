@@ -1,11 +1,59 @@
 //导系
-//让巴尔
-<Ship loc="1" cid="11299" level="110" affection="200" skill="2">
+<!--		絮弗伦-->
+		<Ship loc="1" cid="10552" level="110" affection="200" skill="2">
+			<Equipment loc="1" eid="10631"/>
+			<Equipment loc="2" eid="10631"/>
+			<Equipment loc="3" eid="10632"/>
+<!--			<Equipment loc="4" eid="10413"/>-->
+<!--			<Strategy stid="131" level="3"/>-->
+		</Ship>
+<!--		让巴尔-->
+		<Ship loc="1" cid="11299" level="110" affection="200" skill="2">
 			<Equipment loc="1" eid="10583"/>
 			<Equipment loc="2" eid="10584"/>
 			<Equipment loc="3" eid="10413"/>
 			<Equipment loc="4" eid="10413"/>
-			<Strategy stid="131" level="3"/>
+<!--			<Strategy stid="131" level="3"/>-->
+		</Ship>
+<!--		密苏里-->
+		<Ship loc="2" cid="11209" level="110" affection="200" skill="1">
+			<Equipment loc="1" eid="10528"/>
+			<Equipment loc="2" eid="10264"/>
+			<Equipment loc="3" eid="10413"/>
+			<Equipment loc="4" eid="10413"/>
+<!--			<Strategy stid="131" level="3"/>-->
+		</Ship>
+<!--		格格巫-->
+		<Ship loc="3" cid="10533" level="110" affection="200" skill="1">
+			<Equipment loc="1" eid="10612"/>
+			<Equipment loc="2" eid="10612"/>
+			<Equipment loc="3" eid="10613"/>
+<!--			<Equipment loc="4" eid="10127"/>-->
+<!--			<Strategy stid="131" level="3"/>-->
+		</Ship>
+<!--		济南-->
+		<Ship loc="4" cid="10502" level="110" affection="200" skill="1">
+			<Equipment loc="1" eid="10581"/>
+			<Equipment loc="2" eid="10581"/>
+			<Equipment loc="3" eid="10582"/>
+<!--			<Equipment loc="4" eid="10127"/>-->
+<!--			<Strategy stid="131" level="3"/>-->
+		</Ship>
+<!--		鞍山-->
+		<Ship loc="5" cid="10467" level="110" affection="200" skill="1">
+			<Equipment loc="1" eid="10413"/>
+			<Equipment loc="2" eid="10413"/>
+			<Equipment loc="3" eid="10579"/>
+<!--			<Equipment loc="4" eid="10127"/>-->
+<!--			<Strategy stid="131" level="3"/>-->
+		</Ship>
+<!--		长春-->
+		<Ship loc="6" cid="11097" level="110" affection="200" skill="1">
+			<Equipment loc="1" eid="10413"/>
+			<Equipment loc="2" eid="10413"/>
+			<Equipment loc="3" eid="10579"/>
+<!--			<Equipment loc="4" eid="10127"/>-->
+<!--			<Strategy stid="131" level="3"/>-->
 		</Ship>
 		<!--		基阿特-->
 		<Ship loc="1" cid="11094" level="110" affection="200" skill="1">
@@ -80,6 +128,14 @@
 		</Ship>
 
 //驱逐
+<!--		空想-->
+		<Ship loc="1" cid="11099" level="110" affection="200" skill="1">
+			<Equipment loc="1" eid="10216"/>
+			<Equipment loc="2" eid="10592"/>
+			<Equipment loc="3" eid="10592"/>
+<!--			<Equipment loc="4" eid="10413"/>-->
+<!--			<Strategy stid="131" level="3"/>-->
+		</Ship>
         <!--		Z17,战术配好，注意无反潜-->
 		<Ship loc="1" cid="11269" level="110" affection="200" skill="1">
 			<Equipment loc="1" eid="10590"/>
@@ -176,9 +232,49 @@
 //潜艇
 <!--肥鱼-->
 		<Ship loc="5" cid="11408" level="110" affection="200" skill="1">
-			<Equipment loc="1" eid="10513"/>
-			<Equipment loc="2" eid="10513"/>
-			<Equipment loc="3" eid="10513"/>
+			<Equipment loc="1" eid="10586"/>
+			<Equipment loc="2" eid="10457"/>
+			<Equipment loc="3" eid="10457"/>
 <!--			<Equipment loc="4" eid="10509"/>-->
+<!--			<Strategy stid="131" level="3"/>-->
+		</Ship>
+		<!--		U1206-->
+		<Ship loc="6" cid="U-1206" level="110" affection="200" skill="1">
+			<Equipment loc="1" eid="10336"/>
+			<Equipment loc="2" eid="10336"/>
+			<Equipment loc="3" eid="10513"/>
+<!--			<Equipment loc="4" eid="10127"/>-->
+<!--			<Strategy stid="131" level="3"/>-->
+		</Ship>
+		<!--		射水鱼-->
+		<Ship loc="2" cid="11289" level="110" affection="200" skill="1">
+			<Equipment loc="1" eid="10451"/>
+			<Equipment loc="2" eid="10457"/>
+			<Equipment loc="3" eid="10318"/>
+<!--			<Equipment loc="4" eid="10127"/>-->
+<!--			<Strategy stid="131" level="3"/>-->
+		</Ship>
+<!--		U96-->
+		<Ship loc="3" cid="11290" level="110" affection="200" skill="1">
+			<Equipment loc="1" eid="10451"/>
+			<Equipment loc="2" eid="10457"/>
+			<Equipment loc="3" eid="10318"/>
+<!--			<Equipment loc="4" eid="10127"/>-->
+<!--			<Strategy stid="131" level="3"/>-->
+		</Ship>
+<!--		大青花鱼-->
+		<Ship loc="4" cid="11194" level="110" affection="200" skill="1">
+			<Equipment loc="1" eid="10451"/>
+			<Equipment loc="2" eid="10457"/>
+			<Equipment loc="3" eid="10318"/>
+<!--			<Equipment loc="4" eid="10127"/>-->
+<!--			<Strategy stid="131" level="3"/>-->
+		</Ship>
+		<!--		U81-->
+		<Ship loc="2" cid="11289" level="110" affection="200" skill="1">
+			<Equipment loc="1" eid="10451"/>
+			<Equipment loc="2" eid="10457"/>
+			<Equipment loc="3" eid="10318"/>
+<!--			<Equipment loc="4" eid="10127"/>-->
 <!--			<Strategy stid="131" level="3"/>-->
 		</Ship>

@@ -571,6 +571,9 @@ class Ship(Time):
         夜间攻击模式
         :param target_fleet: Fleet"""
         # CA/CL/CAV确认火雷攻击方式
+        # 夜战导弹舰攻击
+        from src.wsgr.formulas import NightMissileAtk
+
         self.check_night_atk_type()
 
         # 技能发动特殊攻击
@@ -581,6 +584,9 @@ class Ship(Time):
         # 技能优先攻击特定船型
         prior = self.get_prior_type_target(target_fleet)
         if prior is not None:
+            if issubclass(self.night_atk, NightMissileAtk):
+                return self.raise_night_missile_atk(target_fleet)
+
             atk = self.night_atk(
                 timer=self.timer,
                 atk_body=self,
@@ -600,7 +606,6 @@ class Ship(Time):
                 return [atk]
 
         # 夜战导弹舰攻击
-        from src.wsgr.formulas import NightMissileAtk
         if issubclass(self.night_atk, NightMissileAtk):
             return self.raise_night_missile_atk(target_fleet)
 

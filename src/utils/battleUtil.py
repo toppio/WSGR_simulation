@@ -238,8 +238,8 @@ class NormalBattle(BattleUtil):
         self.run_phase(SecondShellingPhase)
         self.run_phase(SecondTorpedoPhase)
         self.run_phase(SecondMissilePhase)
-        # if (self.timer.point is None) or (self.timer.point.level == 5):
-        #     self.run_phase(NightPhase)
+        if (self.timer.point is None) or (self.timer.point.level == 5):
+            self.run_phase(NightPhase)
         self.end_phase()
 
 
