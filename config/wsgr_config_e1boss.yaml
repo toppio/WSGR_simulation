@@ -1,0 +1,125 @@
+battle_type: NormalBattle
+friend_fleet:
+  side: 1
+  form: 4
+  ships:
+  - loc: 1
+    cid: '11064'
+    level: 110
+    affection: 200
+    skill: 2
+    input_health: 32
+    equipment:
+    - loc: 1
+      eid: '10454'
+    - loc: 2
+      eid: '10454'
+    - loc: 3
+      eid: '10454'
+    strategy: []
+  - loc: 2
+    cid: '11121'
+    level: 110
+    affection: 200
+    skill: 2
+    input_health: 60
+    equipment:
+    - loc: 1
+      eid: '10681'
+    - loc: 2
+      eid: '10681'
+    - loc: 3
+      eid: '10681'
+    - loc: 4
+      eid: '10657'
+    strategy: []
+  - loc: 3
+    cid: '11267'
+    level: 110
+    affection: 200
+    skill: 1
+    input_health: 35
+    equipment:
+    - loc: 1
+      eid: '10747'
+    - loc: 2
+      eid: '10747'
+    - loc: 3
+      eid: '10747'
+    strategy: []
+  - loc: 4
+    cid: '11094'
+    level: 110
+    affection: 200
+    skill: 1
+    input_health: 35
+    equipment:
+    - loc: 1
+      eid: '10524'
+    - loc: 2
+      eid: '10714'
+    - loc: 3
+      eid: '10714'
+    strategy: []
+  - loc: 5
+    cid: '11195'
+    level: 110
+    affection: 200
+    skill: 1
+    input_health: 17
+    equipment:
+    - loc: 1
+      eid: '10747'
+    - loc: 2
+      eid: '10747'
+    - loc: 3
+      eid: '10747'
+    strategy: []
+  - loc: 6
+    cid: '11266'
+    level: 110
+    affection: 200
+    skill: 1
+    input_health: 36
+    equipment:
+    - loc: 1
+      eid: '10757'
+    - loc: 2
+      eid: '10532'
+    - loc: 3
+      eid: '10682'
+    strategy: []
+enemy_fleet:
+  side: 0
+  form: 4
+  ships:
+  - loc: 1
+    cid: '03001'
+    level: 85
+    affection: 50
+    skill: 1
+  - loc: 2
+    cid: '03002'
+    level: 85
+    affection: 50
+    skill: 1
+  - loc: 3
+    cid: '03003'
+    level: 85
+    affection: 50
+    skill: 1
+  - loc: 4
+    cid: '03003'
+    level: 85
+    affection: 50
+    skill: 1
+  - loc: 5
+    cid: '03005'
+    level: 85
+    affection: 50
+    skill: 1
+  - loc: 6
+    cid: '03006'
+    level: 85
+    affection: 50
+    skill: 1

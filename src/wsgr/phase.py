@@ -501,11 +501,15 @@ class LongMissilePhase(MissilePhase):
     """远程导弹支援"""
 
     def start(self):
-        if not self.timer.recon_flag:  # 索敌失败不进行远程打击
-            return
         atk_friend = self.friend.get_act_member_inphase()           # 检查友方可参与导弹战的对象
         def_enemy = self.enemy.get_atk_target(atk_type=LongMissileAtk)  # 检查敌方可被导弹攻击的对象
-        if len(atk_friend) and len(def_enemy):                      # 同时存在可发动攻击和可被攻击对象，结算导弹攻击
+        atk_enemy = self.enemy.get_act_member_inphase()           # 检查敌方可参与导弹战的对象
+        def_friend = self.friend.get_atk_target(atk_type=LongMissileAtk)  # 检查友方可被导弹攻击的对象
+        if not self.timer.recon_flag:  # 索敌失败不进行远程打击
+            # return
+            if len(atk_enemy) and len(def_friend):  # 同时存在可发动攻击和可被攻击对象，结算导弹攻击
+                self.missile_strike(atk_enemy, def_friend)
+        elif len(atk_friend) and len(def_enemy):                      # 同时存在可发动攻击和可被攻击对象，结算导弹攻击
             self.missile_strike(atk_friend, def_enemy)
 
     def missile_strike(self, attack, defend):
