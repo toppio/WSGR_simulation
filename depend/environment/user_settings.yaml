@@ -5,4 +5,11 @@ dish: null
 car:
   name: null
   country: ''
-extras: []
+extras:
+- Strike_Stormy_1
+- Strike_Stormy_3
+- Strike_Stormy_2
+- Strike_Stormy_4
+- Strike_Stormy_5
+- Strike_Stormy_6
+- E1_CVL_Buff

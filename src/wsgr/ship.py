@@ -1032,6 +1032,23 @@ class AntiSubShip(Ship):
         self.anti_sub_atk = AntiSubAtk  # 反潜攻击
         self.night_anti_sub_atk = NightAntiSubAtk  # 夜战反潜攻击
 
+    def get_act_indicator(self):
+        from src.wsgr.phase import AntiSubPhase
+        # 跳过阶段，优先级最高
+        for tmp_buff in self.temper_buff:
+            if tmp_buff.name == 'not_act_phase' and tmp_buff.is_active():
+                return False
+
+        # 可参与阶段
+        for tmp_buff in self.temper_buff:
+            if tmp_buff.name == 'act_phase' and tmp_buff.is_active():
+                if isinstance(self.timer.phase, AntiSubPhase):
+                    return True
+
+        # 默认行动模式
+        phase_name = type(self.timer.phase).__name__
+        return self.act_phase_indicator[phase_name](self)
+
 
 class Aircraft(Ship):
     """航系单位(所有可参与航空战攻击的单位)"""
