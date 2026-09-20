@@ -1,0 +1,47 @@
+battle_type: NormalBattle
+friend_fleet:
+  side: 1
+  form: 4
+  ships:
+  - loc: 1
+    cid: '10022'
+    level: 110
+    affection: 200
+    skill: 0
+    input_health: 69
+    equipment: []
+    strategy: []
+enemy_fleet:
+  side: 0
+  form: 1
+  ships:
+  - loc: 1
+    cid: '03004'
+    level: 85
+    affection: 50
+    skill: 1
+  - loc: 2
+    cid: '00103'
+    level: 85
+    affection: 50
+    skill: 1
+  - loc: 3
+    cid: '00103'
+    level: 85
+    affection: 50
+    skill: 1
+  - loc: 4
+    cid: 00080
+    level: 89
+    affection: 50
+    skill: 1
+  - loc: 5
+    cid: 00080
+    level: 89
+    affection: 50
+    skill: 1
+  - loc: 6
+    cid: 00080
+    level: 89
+    affection: 50
+    skill: 1
