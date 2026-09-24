@@ -5,4 +5,8 @@ dish: null
 car:
   name: null
   country: ''
-extras: []
+extras:
+- Strike_Rainy_1
+- Strike_Rainy_2
+- Strike_Rainy_3
+- Strike_Rainy_4

@@ -78,7 +78,7 @@ class Skill_110432(Skill):
             return False
 
         sister = sis_list[0]
-        if type(sister.skill[0]).__name__ != type(self).__name__:  # 没有同时使用本技能
+        if type(sister.skill[0]).__module__ != type(self).__module__:  # 没有同时使用本技能
             return False
 
         # 站位靠前的获得双发能力
