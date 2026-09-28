@@ -58,9 +58,10 @@ class Skill_115891_2(Skill):
                 value=0.3,
                 bias_or_weight=0
             ),
-            AntiairBasedFire(
+            StatusBasedBuff(
                 timer=timer,
                 name='fire',
+                base='antiair',
                 phase=AllPhase,
                 value=0.4,
                 bias_or_weight=0
@@ -94,13 +95,6 @@ class Skill_115891_2(Skill):
                 atk_request=[AtkCVTypeRequest]
             )
         ]
-
-
-class AntiairBasedFire(StatusBuff):
-    """自身对空值的指定比例视为火力值"""
-
-    def change_value(self, *args, **kwargs):
-        self.value = np.ceil(self.master.get_final_status('antiair') * 0.4)
 
 
 class AtkCVTypeRequest(ATKRequest):

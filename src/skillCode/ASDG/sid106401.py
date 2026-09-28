@@ -14,28 +14,22 @@ from AADG_common import *
 """
 
 
-class Skill_106401_1(CommonSkill):
+class Skill_106401_1(Skill):
     """自身对空值的50%视为火力值"""
 
     def __init__(self, timer, master):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
-            CommonBuff(
+            StatusBasedBuff(
                 timer=timer,
                 name='fire',
+                base='antiair',
                 phase=AllPhase,
-                value=.5,
+                value=0.5,
                 bias_or_weight=0
             ),
         ]
-
-    def activate(self, friend, enemy):
-        antiair_value = self.master.get_final_status('antiair')
-        for tmp_buff in self.buff[:]:
-            tmp_buff = copy.copy(tmp_buff)
-            tmp_buff.value *= antiair_value
-            self.master.add_buff(tmp_buff)
 
 
 class Skill_106401_2(Skill):

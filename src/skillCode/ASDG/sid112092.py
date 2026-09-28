@@ -60,6 +60,8 @@ class Skill_112091_2(Skill):
 
     def activate(self, friend, enemy):
         target = self.target.get_target(friend, enemy)
+        if not len(target):  # 自身未装备导弹
+            return
         missile = np.random.choice(target)  # 任意选择一枚
         for tmp_buff in self.buff[:]:
             tmp_buff = copy.copy(tmp_buff)

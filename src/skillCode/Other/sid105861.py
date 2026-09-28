@@ -162,8 +162,8 @@ class SkillMultiAtkBuff(MultipleAtkBuff):
             atk = self.raise_atk(enemy, first_target)
             if atk is None:
                 break
+            first_target = atk.target_init()  # 设定初始目标(挡枪判定前)
             yield atk
-            first_target = atk.target
 
         self.remove_during_buff()  # 去除攻击时效果
         self.add_end_buff()  # 攻击结束效果

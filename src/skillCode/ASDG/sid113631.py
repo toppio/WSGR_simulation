@@ -34,9 +34,10 @@ class Skill_113631_2(Skill):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
-            StatusBuff(
+            StatusBasedBuff(
                 timer=timer,
                 name='fire',
+                base='antisub',
                 phase=AllPhase,
                 value=1,
                 bias_or_weight=0
@@ -57,16 +58,6 @@ class Skill_113631_2(Skill):
                 atk_request=[ATKRequest_1]
             )
         ]
-
-    def activate(self, friend, enemy):
-        evasion = self.master.get_final_status('antisub')
-        buff0 = copy.copy(self.buff[0])
-        buff0.value *= evasion
-        self.master.add_buff(buff0)
-
-        for tmp_buff in self.buff[1:]:
-            tmp_buff = copy.copy(tmp_buff)
-            self.master.add_buff(tmp_buff)
 
 
 class ATKRequest_1(ATKRequest):

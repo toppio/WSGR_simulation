@@ -36,7 +36,8 @@ SHIP_LABELS = {
     "AADG": "防驱",
     "KP": "导巡",
     "CG": "防巡",
-    "BG": "大巡",
+    "BG": "防战",
+    "CBG": "大巡",
     "BBG": "导战",
     "Elite": "旗舰",
     "Fortness": "要塞",
@@ -1116,26 +1117,13 @@ class CV(Aircraft, LargeShip, MainShip):
                 (x.damaged < 2) and (x.check_atk_plane_load()),
             'SecondShellingPhase': lambda x:
                 (x.damaged < 2) and (x.check_atk_plane_load()) and (x.get_range() >= 3),
+            'NightPhase': lambda x:
+                (x.damaged < 2) and (x.check_atk_plane_load()),
         })
 
         from src.wsgr.formulas import AirNormalAtk, NightAirAtk
         self.normal_atk = AirNormalAtk  # 炮击战航空攻击
         self.night_atk = NightAirAtk  # 夜战航空攻击
-
-    def get_act_indicator(self):
-        # 跳过阶段，优先级最高
-        for tmp_buff in self.temper_buff:
-            if tmp_buff.name == 'not_act_phase' and tmp_buff.is_active():
-                return False
-
-        # 可参与阶段
-        for tmp_buff in self.temper_buff:
-            if tmp_buff.name == 'act_phase' and tmp_buff.is_active():
-                return (self.damaged < 2) and (self.check_atk_plane_load())
-
-        # 默认行动模式
-        phase_name = type(self.timer.phase).__name__
-        return self.act_phase_indicator[phase_name](self)
 
 
 class CVL(Aircraft, AntiSubShip, MidShip, CoverShip):
@@ -1159,6 +1147,8 @@ class CVL(Aircraft, AntiSubShip, MidShip, CoverShip):
                 (x.damaged < 2) and (x.check_atk_plane_load()),
             'SecondShellingPhase': lambda x:
                 (x.damaged < 2) and (x.check_atk_plane_load()) and (x.get_range() >= 3),
+            'NightPhase': lambda x:
+                (x.damaged < 2) and (x.check_atk_plane_load()),
         })
 
         from src.wsgr.formulas import AirNormalAtk, AirAntiSubAtk, NightAirAtk
@@ -1204,26 +1194,13 @@ class AV(Aircraft, LargeShip, MainShip):
                 (x.damaged < 3) and (x.check_atk_plane_load()),
             'SecondShellingPhase': lambda x:
                 (x.damaged < 3) and (x.check_atk_plane_load()) and (x.get_range() >= 3),
+            'NightPhase': lambda x:
+                (x.damaged < 3) and (x.check_atk_plane_load()),
         })
 
         from src.wsgr.formulas import AirNormalAtk, NightAirAtk
         self.normal_atk = AirNormalAtk  # 炮击战航空攻击
         self.night_atk = NightAirAtk  # 夜战航空攻击
-
-    def get_act_indicator(self):
-        # 跳过阶段，优先级最高
-        for tmp_buff in self.temper_buff:
-            if tmp_buff.name == 'not_act_phase' and tmp_buff.is_active():
-                return False
-
-        # 可参与阶段
-        for tmp_buff in self.temper_buff:
-            if tmp_buff.name == 'act_phase' and tmp_buff.is_active():
-                return (self.damaged < 3) and (self.check_atk_plane_load())
-
-        # 默认行动模式
-        phase_name = type(self.timer.phase).__name__
-        return self.act_phase_indicator[phase_name](self)
 
 
 class BB(LargeShip, MainShip):
@@ -1412,7 +1389,7 @@ class DefMissileShip(MissileShip):
         self.act_phase_flag.update({
             'LongMissilePhase': False,  # 可拦截不可攻击
             'FirstMissilePhase': False,  # 可拦截不可攻击
-            'SecondTorpedoPhase': False,  # 大巡可参与
+            'SecondTorpedoPhase': False,  # 大巡、防战可参与
             'SecondMissilePhase': True,  # 可攻击
         })
 
@@ -1474,11 +1451,22 @@ class BBG(AtkMissileShip, LargeShip, MainShip):
 
 
 class BG(DefMissileShip, LargeShip, MainShip):
-    """大巡"""
+    """防战"""
 
     def __init__(self, timer):
         super().__init__(timer)
         self.type = 'BG'
+        self.act_phase_flag.update({
+            'SecondTorpedoPhase': True,  # 防战可参与
+        })
+
+
+class CBG(DefMissileShip, LargeShip, MainShip):
+    """大巡"""
+
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.type = 'CBG'
         self.act_phase_flag.update({
             'SecondTorpedoPhase': True,  # 大巡可参与
         })
@@ -1731,7 +1719,7 @@ class Fleet(Time):
 
     def get_fleet_speed(self):
         """计算舰队航速"""
-        main_type = (CV, CVL, AV, BB, BC, BBV, ASDG, AADG, KP, CG, BBG, BG,
+        main_type = (CV, CVL, AV, BB, BC, BBV, ASDG, AADG, KP, CG, BBG, BG, CBG,
                          Elite, Fortness, Airfield, Port)
         cover_type = (CA, CAV, CL, CLT, DD, BM, AP, Tuning)
 
@@ -1807,6 +1795,11 @@ class Fleet(Time):
             target = [tmp_ship for tmp_ship in self.ship
                       if tmp_ship.can_be_atk(atk_type)]
         return target
+
+    def get_direction_limit(self):
+        """查询我方是否存在"航向限制"类技能效果(反航与T劣的权重并入同航)"""
+        return any(tmp_ship.get_special_buff('direction_limit')
+                   for tmp_ship in self.ship)
 
     def count(self, shiptype):
         c = 0

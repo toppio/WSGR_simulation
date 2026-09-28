@@ -18,7 +18,7 @@ class Skill_105591_1(Skill):
     """全队大巡、防巡和防驱增加30%护甲穿透，增加20点回避值与对空值。"""
     def __init__(self, timer, master):
         super().__init__(timer, master)
-        self.target = TypeTarget(side=1, shiptype=(BG, CG, AADG))
+        self.target = TypeTarget(side=1, shiptype=(CBG, CG, AADG))
         self.buff = [
             CoeffBuff(
                 timer=timer,

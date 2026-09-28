@@ -41,8 +41,8 @@ class NeighborAtkBuff(ActiveBuff):
 
         self.add_during_buff()  # 攻击时效果
         atk.set_coef(self.coef)  # 添加参数
+        tmp_target = atk.target_init()  # 设定初始目标(挡枪判定前)
         yield atk
-        tmp_target = atk.target
 
         neighbor_target = NearestLocTarget(
             side=0, master=tmp_target, radius=1, direction='near'

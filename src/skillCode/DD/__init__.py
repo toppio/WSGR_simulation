@@ -18,6 +18,7 @@ from . import sid110751  # Z16改-1
 from . import sid110752  # Z16改-2
 from . import sid110761  # Z21改-1
 from . import sid110771  # Z22改-1
+from . import sid110781  # Z24改-1
 from . import sid110791  # Z28改-1
 from . import sid110801  # Z31改-1
 from . import sid110811  # 紫石英改-1

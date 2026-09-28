@@ -36,13 +36,16 @@ from . import sid114131  # 加里波第改-1
 from . import sid114301  # 捷尔任斯基改-1
 from . import sid115281  # 芝加哥改-1
 
+# 大巡
+from . import sid110201  # 阿拉斯加改-1
+from . import sid110211  # 关岛改-1
+
 # 导战
 from . import sid112092  # 密苏里改-2
 from . import sid112992  # 让巴尔改-2
 
-# 大巡
-from . import sid110201  # 阿拉斯加改-1
-from . import sid110211  # 关岛改-1
+# 防战
+from . import sid116022  # 密西西比改-2
 
 # 导潜
 from . import sid106011  # 351-1
