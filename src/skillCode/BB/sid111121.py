@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 # Author:stars
+# Edited by: 银河远征(20260922)
 # env:py38
 # 维内托-1
 
@@ -7,16 +8,16 @@ from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
 
-"""火力+20，命中-6，战斗中免疫受到的第一次攻击"""
+"""自身火力值、装甲值和回避值增加20点。
+全阶段自身可免疫1次伤害, 暴击率和暴击伤害提高38.1%。
+炮击战阶段被攻击命中后对攻击的敌人发动反击, 该次反击的攻击威力不会因耐久损伤而降低且必定命中, 造成的伤害提高38.1%（大破无法发动）。"""
 
 
 class Skill_111121_1(CommonSkill):
-    """火力+20，命中-6"""
-
+    """自身火力值、装甲值和回避值增加20点。"""
     def __init__(self, timer, master):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
-
         self.buff = [
             CommonBuff(
                 timer=timer,
@@ -27,27 +28,56 @@ class Skill_111121_1(CommonSkill):
             ),
             CommonBuff(
                 timer=timer,
-                name='accuracy',
+                name='armor',
                 phase=AllPhase,
-                value=-6,
+                value=20,
                 bias_or_weight=0
-            )
+            ),
+            CommonBuff(
+                timer=timer,
+                name='evasion',
+                phase=AllPhase,
+                value=20,
+                bias_or_weight=0
+            ),
         ]
 
 
 class Skill_111121_2(Skill):
-    """战斗中免疫受到的第一次攻击。"""
+    """全阶段自身可免疫1次伤害, 暴击率和暴击伤害提高38.1%。
+    炮击战阶段被攻击命中后对攻击的敌人发动反击,
+    该次反击的攻击威力不会因耐久损伤而降低且必定命中,
+    造成的伤害提高38.1%（大破无法发动）。"""
 
     def __init__(self, timer, master):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
-
         self.buff = [
-            SpecialBuff(
+            DamageShield(
                 timer=timer,
-                name='shield',
                 phase=AllPhase,
-                exhaust=1)
+            ),
+            CoeffBuff(
+                timer=timer,
+                name='crit',
+                phase=AllPhase,
+                value=.381,
+                bias_or_weight=0
+            ),
+            CoeffBuff(
+                timer=timer,
+                name='crit_coef',
+                phase=AllPhase,
+                value=.381,
+                bias_or_weight=0
+            ),
+            HitBack(
+                timer=timer,
+                phase=ShellingPhase,
+                exhaust=None,
+                coef={'ignore_damaged': True,
+                      'final_damage_buff': .381}
+            )
         ]
 
 
