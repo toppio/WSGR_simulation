@@ -32,20 +32,15 @@ class Skill_104581_2(Skill):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
-            StatusBuff(
+            StatusBasedBuff(
                 timer=timer,
                 name='torpedo',
+                base='evasion',
                 phase=AllPhase,
                 value=0.2,
                 bias_or_weight=0
             )
         ]
-
-    def activate(self, friend, enemy):
-        evasion = self.master.get_final_status('evasion')
-        buff0 = copy.copy(self.buff[0])
-        buff0.value *= evasion
-        self.master.add_buff(buff0)
 
 
 name = '王牌'

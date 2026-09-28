@@ -22,6 +22,7 @@ from . import sid105131  # 勇猛-1
 from . import sid105941  # 黄蜂(CV-18)-1
 from . import sid106091  # 香格里拉-1
 from . import sid106271  # 奥里斯坎尼-1
+from . import sid106441  # 伊丽莎白女王-1
 
 # 改造
 from . import sid110221  # 赤城改-1
@@ -40,6 +41,7 @@ from . import sid112211  # 飞龙改-1
 from . import sid112212  # 飞龙改-2
 from . import sid112221  # 苍龙改-1
 from . import sid112251  # 黄蜂改-1
+from . import sid112262  # 埃塞克斯改-2
 from . import sid112321  # 贝亚恩改-1
 from . import sid113252  # 列克星敦(cv-16)-1
 from . import sid113391  # 帝国改-1

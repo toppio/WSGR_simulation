@@ -179,6 +179,12 @@ class PreparePhase(AllPhase):
         speed_matrix[3] -= d_fleet_speed
         speed_matrix[3] = max(0, speed_matrix[3])
 
+        # 技能航向修正：反航、T劣的权重并入同航
+        if self.friend.get_direction_limit():
+            speed_matrix[1] += speed_matrix[2] + speed_matrix[3]
+            speed_matrix[2] = 0
+            speed_matrix[3] = 0
+
         speed_matrix = speed_matrix / sum(speed_matrix)
         self.timer.report_log('speed_matrix', speed_matrix)  # 报告航向概率分布
 

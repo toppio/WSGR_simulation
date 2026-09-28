@@ -37,19 +37,18 @@ class Skill_104601_2(Skill):
     def __init__(self, timer, master):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
-        self.request = [Request_1]
         self.buff = [
             FinalDamageBuff(
                 timer=timer,
                 name='final_damage_buff',
                 phase=AllPhase,
                 value=0.15,
-                atk_request=[Request_1]
+                atk_request=[ATKRequest_1]
             )
         ]
 
 
-class Request_1(ATKRequest):
+class ATKRequest_1(ATKRequest):
     def __bool__(self):
         return self.atk.target.status['standard_health'] > \
                self.atk.target.status['health']

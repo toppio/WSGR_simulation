@@ -11,7 +11,7 @@ from .CA import *
 from .CL import *
 from .DD import *
 from .SS import *           # 潜艇类: SS, SC
-from .ASDG import *         # 导弹类: 导驱、防驱、导战、大巡
+from .ASDG import *         # 导弹类: 导驱、防驱、大巡、导战、防战
 from .Other import *        # 其他舰种，包含航战、航巡、雷巡、补给
 from .Enemy import *        # 深海技能
 

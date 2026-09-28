@@ -68,9 +68,9 @@ class Skill_111112_2(Skill):
 class SkillTarget(SelfTarget):
     def get_target(self, friend, enemy):
         lead = LocTarget(side=0, loc=[1])\
-            .get_target(friend=friend, enemy=enemy)
+            .get_target(friend=friend, enemy=enemy)[0]
         opposite = LocTarget(side=0, loc=[self.master.loc])\
-            .get_target(friend=friend, enemy=enemy)
+            .get_target(friend=friend, enemy=enemy)[0]
 
         target = [lead]
         if opposite != lead and not isinstance(opposite, Submarine):

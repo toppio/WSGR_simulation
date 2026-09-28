@@ -59,9 +59,10 @@ class SecondAtkBuff(MultipleAtkBuff):
         assert self.master is not None
         def_list = atk.def_list
         self.add_during_buff()  # 攻击时效果
+        tmp_target = atk.target_init()  # 设定初始目标(挡枪判定前)
         yield atk
 
-        def_list.remove(atk.target)
+        def_list.remove(tmp_target)  # 删除初始目标(挡枪判定前)
         for i in range(self.num - 1):
             if not len(def_list):
                 break
@@ -71,8 +72,9 @@ class SecondAtkBuff(MultipleAtkBuff):
                 def_list=def_list,
                 coef=copy.copy(self.coef),
             )
+            tmp_target = tmp_atk.target_init()  # 设定初始目标(挡枪判定前)
             yield tmp_atk
-            def_list.remove(tmp_atk.target)
+            def_list.remove(tmp_target)  # 删除初始目标(挡枪判定前)
 
         self.remove_during_buff()  # 去除攻击时效果
         self.add_end_buff()  # 攻击结束效果

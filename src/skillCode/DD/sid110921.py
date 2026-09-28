@@ -30,30 +30,23 @@ class Skill_110921_2(Skill):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
-            StatusBuff(
+            StatusBasedBuff(
                 timer=timer,
                 name='antiair',
+                base='recon',
                 phase=AllPhase,
                 value=.6,
                 bias_or_weight=0
             ),
-            StatusBuff(
+            StatusBasedBuff(
                 timer=timer,
                 name='fire',
+                base='recon',
                 phase=AllPhase,
                 value=.6,
                 bias_or_weight=0
             ),
         ]
-
-    def activate(self, friend, enemy):
-        target = self.target.get_target(friend, enemy)
-        recon = self.master.get_final_status('recon')
-        for tmp_target in target:
-            for tmp_buff in self.buff[:]:
-                tmp_buff = copy.copy(tmp_buff)
-                tmp_buff.value *= recon
-                tmp_target.add_buff(tmp_buff)
 
 
 name = '冷战先锋'

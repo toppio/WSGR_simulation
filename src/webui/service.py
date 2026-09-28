@@ -96,7 +96,7 @@ RESULT_FLAGS = ("SS", "S", "A", "B", "C", "D")
 
 _SPEED_MAIN_SHIP_TYPES = frozenset({
     "CV", "CVL", "AV", "BB", "BC", "BBV", "BBV0", "ASDG", "AADG", "KP",
-    "CG", "BBG", "BG", "Elite", "Fortness", "Airfield", "Port",
+    "CG", "BBG", "BG", "CBG", "Elite", "Fortness", "Airfield", "Port",
 })
 _SPEED_COVER_SHIP_TYPES = frozenset({
     "CAV", "CA", "CL", "CLT", "CLT0", "DD", "BM", "AP", "Tuning",

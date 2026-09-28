@@ -87,5 +87,23 @@ class Skill_103701_3(Skill):
         ]
 
 
+class Skill_103701_4(PrepSkill):
+    """夜战阶段自身行动不受耐久损失影响。"""
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
+        self.target = SelfTarget(master)
+        self.buff = []
+
+    def activate(self, friend, enemy):
+        if isinstance(self.master, (CV, AV, CVL)):
+            self.master.act_phase_indicator.update({
+                'NightPhase': lambda x: (x.damaged < 4) and (x.check_atk_plane_load())
+            })
+        else:
+            self.master.act_phase_indicator.update({
+                'NightPhase': lambda x: (x.damaged < 4)
+            })
+
+
 name = '先驱首战'
-skill = [Skill_103701_1, Skill_103701_2, Skill_103701_3]
+skill = [Skill_103701_1, Skill_103701_2, Skill_103701_3, Skill_103701_4]

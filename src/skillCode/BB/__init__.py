@@ -46,6 +46,9 @@ from . import sid105821  # H43-1
 from . import sid106021  # 密西西比-1
 from . import sid106131  # 武藏-1
 from . import sid106231  # 鲁莽-1
+from . import sid106411  # 21工程-1
+from . import sid106481  # 阿尔汉格尔斯克-1
+from . import sid106521  # 俄亥俄-1
 
 # 改造BB
 from . import sid110061  # 俾斯麦-1

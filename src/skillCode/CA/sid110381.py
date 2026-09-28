@@ -33,23 +33,15 @@ class Skill_110381_2(Skill):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
-            StatusBuff(
+            StatusBasedBuff(
                 timer=timer,
                 name='armor',
+                base='luck',
                 phase=AllPhase,
-                value=.5,
+                value=0.5,
                 bias_or_weight=0
             )
         ]
-
-    def activate(self, friend, enemy):
-        target = self.target.get_target(friend, enemy)
-        luck = self.master.get_final_status('luck')
-        for tmp_target in target:
-            for tmp_buff in self.buff[:]:
-                tmp_buff = copy.copy(tmp_buff)
-                tmp_buff.value *= luck
-                tmp_target.add_buff(tmp_buff)
 
 
 class Skill_110381_3(Skill):

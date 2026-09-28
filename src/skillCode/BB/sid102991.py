@@ -39,6 +39,8 @@ class Skill_102991_2(PrepSkill):
         ).get_target(friend, enemy)
         if self.master in mid_large:
             mid_large.remove(self.master)
+        if not len(mid_large):  # 队伍中不存在自身以外的中、大型船
+            return
 
         target = np.random.choice(mid_large)
         _skill = target.get_raw_skill()  # 获得其技能

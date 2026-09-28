@@ -651,6 +651,32 @@ class RoundaboutBuff(CommonBuff):
         super().__init__(timer, name, phase, value, bias_or_weight, rate)
 
 
+class StatusBasedBuff(StatusBuff):
+    """按其他属性的一定比例提供本属性加成（动态计算）
+
+    例：name='fire', source='torpedo', value=0.4
+        表示"自身鱼雷值的40%视为火力值"，取值为当前鱼雷值 × 40%。
+
+    :param name: 本 buff 加成的属性名(如 'fire')
+    :param base: 换算来源的属性名(如 'torpedo')
+    :param value: 换算比例
+    """
+    def __init__(self, timer, name, base, phase, value, bias_or_weight,
+                 rate=1):
+        super().__init__(timer, name, phase, value, bias_or_weight, rate)
+        self.base = base
+        self.ratio = value
+        self.value = 0
+
+    def __repr__(self):
+        return f"{self.name}: {self.base}×{self.ratio}"
+
+    def change_value(self, *args, **kwargs):
+        self.value = np.ceil(
+            self.master.get_final_status(self.base) * self.ratio
+        )
+
+
 class CoeffBuff(Buff):
     """系数增益"""
     def __init__(self, timer, name, phase, value, bias_or_weight, rate=1):
@@ -1170,9 +1196,10 @@ class MultipleAtkBuff(ActiveBuff):
         assert len(def_list)
         self.add_during_buff()  # 攻击时效果
         atk.set_coef(self.coef)  # 添加参数
+        tmp_target = atk.target_init()  # 设定初始目标(挡枪判定前)
         yield atk
 
-        def_list.remove(atk.target)
+        def_list.remove(tmp_target)  # 删除初始目标(挡枪判定前)
         for i in range(self.num - 1):
             if not len(def_list):
                 break
@@ -1182,8 +1209,9 @@ class MultipleAtkBuff(ActiveBuff):
                 def_list=def_list,
                 coef=copy.copy(self.coef),
             )
+            tmp_target = tmp_atk.target_init()  # 设定初始目标(挡枪判定前)
             yield tmp_atk
-            def_list.remove(tmp_atk.target)
+            def_list.remove(tmp_target)  # 删除初始目标(挡枪判定前)
 
         self.remove_during_buff()  # 去除攻击时效果
         self.add_end_buff()  # 攻击结束效果
@@ -1220,9 +1248,9 @@ class ExtraAtkBuff(ActiveBuff):
         assert len(def_list)
         self.add_during_buff()  # 攻击时效果
         atk.set_coef(self.coef)  # 添加参数
+        target = atk.target_init()  # 设定初始目标(挡枪判定前)
         yield atk
 
-        target = atk.target
         for i in range(self.num - 1):
             if target.damaged == 4:
                 break
