@@ -8,3 +8,4 @@ from . import sid010471  # 深海111号战列
 from . import sid030011  # 高雄
 from . import sid030051  # CVS
 from . import sid030111  # 雾岛
+from . import sid030121  # I-400&I-402
