@@ -40,7 +40,7 @@ class Skill_110861_1(Skill):
                         value=20,
                         bias_or_weight=0
                     ),
-                    DuringAtkBuff(
+                    MustHitDuringBuff(
                         timer=timer,
                         name='must_hit',
                         phase=ShellingPhase,
@@ -51,6 +51,13 @@ class Skill_110861_1(Skill):
                 rate=0.35
             )
         ]
+
+
+class MustHitDuringBuff(DuringAtkBuff):
+    """攻击期间必定命中。
+    同时实现 activate 以供 get_special_buff 查询。"""
+    def activate(self, *args, **kwargs):
+        pass
 
 
 class SpecialLock(ActiveBuff):

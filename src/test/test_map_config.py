@@ -1,3 +1,7 @@
+# -*- coding:utf-8 -*-
+# Author:银河远征(Agent supported)
+# env:py38
+
 import copy
 import unittest
 from pathlib import Path
@@ -15,6 +19,9 @@ from src.utils.mapUtil import DefaultUserRules, Point, UserRules
 from src.skillCode.MapEnv import load_map_effect, map_effect_options
 from src.webui.service import (
     MapSimulationManager,
+    _accumulate_map_epoch,
+    _merge_map_delta,
+    _new_map_state,
     calculate_map_enemy_fleet_summary,
 )
 import src.wsgr.ship as rship
@@ -39,7 +46,7 @@ class MapBattleConfigTest(unittest.TestCase):
             str(PROJECT_ROOT / "config" / "config_map_test.yaml"),
             str(PROJECT_ROOT / "depend" / "map"),
         )
-        self.assertEqual(loaded["map"], {"mapid": "2-1"})
+        self.assertEqual(loaded["map"], {"mapid": "normal/2-1"})
         config = copy.deepcopy(self.config)
         config.pop("user_rules", None)
         battle_map = load_config(
@@ -300,7 +307,6 @@ class MapResultStatisticsTest(unittest.TestCase):
     def test_visits_and_battles_use_separate_denominators(self):
         summary = MapSimulationManager._build_map_summary(
             completed=10,
-            cleared=0,
             boss_battles=0,
             boss_flagship_sinks=0,
             node_statistics={"A": self._statistics(visits=5, battles=2)},
@@ -321,7 +327,6 @@ class MapResultStatisticsTest(unittest.TestCase):
     def test_battle_statistics_are_empty_when_every_visit_roundabouts(self):
         summary = MapSimulationManager._build_map_summary(
             completed=10,
-            cleared=0,
             boss_battles=0,
             boss_flagship_sinks=0,
             node_statistics={"A": self._statistics(visits=5, battles=0)},
@@ -375,7 +380,6 @@ class MapResultStatisticsTest(unittest.TestCase):
         node_statistics["B2"]["heavy_damage_by_ship"] = np.array([1], dtype=float)
         summary = MapSimulationManager._build_map_summary(
             completed=10,
-            cleared=4,
             boss_battles=6,
             boss_flagship_sinks=4,
             node_statistics=node_statistics,
@@ -383,35 +387,181 @@ class MapResultStatisticsTest(unittest.TestCase):
             supply_totals={key: 0 for key in supply_keys},
             first_record="",
             boss_statistics=boss_statistics,
+            boss_result_counts={"SS": 3, "S": 2, "A": 1, "B": 0, "C": 0, "D": 0},
+            boss_end_counts={"B1": 4, "B2": 2},
         )
         bosses = {entry["name"]: entry for entry in summary["boss_statistics"]}
+
+        # Boss 综合胜率按「Boss 战斗场次」聚合：5/6
+        self.assertAlmostEqual(summary["boss_win_rate"], 500 / 6)
+        # Boss 旗舰击沉率按「Boss 战斗场次」：4/6
+        self.assertAlmostEqual(summary["boss_flagship_sink_rate"], 400 / 6)
+        # 完成率 = 各 Boss 终点局数之和 / 总局数：(4 + 2) / 10
+        self.assertEqual(summary["completion_rate"], 60.0)
+        # 旧的「到终点且击沉旗舰」口径已移除
+        self.assertNotIn("clear_rate", summary)
 
         self.assertEqual(bosses["B1"]["simulations"], 4)
         self.assertEqual(bosses["B1"]["clear_rate"], 75.0)
         self.assertEqual(bosses["B1"]["flagship_sink_rate"], 75.0)
+        self.assertEqual(bosses["B1"]["completion_rate"], 40.0)
         self.assertEqual(bosses["B1"]["result_rates"]["SS"], 50.0)
         self.assertEqual(bosses["B1"]["average_bucket"], 0.5)
         self.assertEqual(bosses["B1"]["average_dcitem"], 0.25)
         self.assertEqual(bosses["B1"]["friend_mid_damage_rates"], [50.0])
         self.assertEqual(bosses["B1"]["friend_heavy_damage_rates"], [25.0])
         self.assertEqual(bosses["B2"]["clear_rate"], 50.0)
+        self.assertEqual(bosses["B2"]["completion_rate"], 20.0)
         self.assertEqual(bosses["B2"]["average_dcitem"], 1.0)
         self.assertEqual(bosses["B2"]["friend_mid_damage_rates"], [50.0])
         self.assertEqual(bosses["B2"]["friend_heavy_damage_rates"], [50.0])
 
 
+class MapCaliberAccumulationTest(unittest.TestCase):
+    """完成率 / Boss 综合胜率 / 旗舰击沉率的累加口径。"""
+
+    NODES = ["入口", "道中", "B1", "B2"]
+    BOSSES = ["B1", "B2"]
+    SHIPS = ["舰1"]
+
+    @staticmethod
+    def _battle(name, result, boss=False, sunk=False):
+        return {
+            "name": name,
+            "result": result,
+            "boss": boss,
+            "boss_flagship_sunk": sunk,
+            "friend_damaged_state": [],
+        }
+
+    @classmethod
+    def _report(cls, ending, battles, *, end_with_boss=False, oil=10, dcitem=0):
+        return {
+            "end_with": ending,
+            "end_with_boss": end_with_boss,
+            "map_battles": battles,
+            "supply": {"oil": oil, "ammo": 8, "steel": 2, "almn": 4, "repeat": 1},
+            "dcitem": dcitem,
+            "record": f"{ending}-record",
+        }
+
+    def _collect(self):
+        state = _new_map_state(self.NODES, self.BOSSES, self.SHIPS)
+        reports = [
+            # 打到终点 B1，SS 且击沉旗舰
+            self._report(
+                "B1",
+                [self._battle("道中", "A"), self._battle("B1", "SS", boss=True, sunk=True)],
+                end_with_boss=True, oil=12, dcitem=1,
+            ),
+            # 打到终点 B1，S 但未击沉旗舰：计入完成率，不计入旗舰击沉
+            self._report(
+                "B1",
+                [self._battle("B1", "S", boss=True, sunk=False)],
+                end_with_boss=True, oil=10,
+            ),
+            # 道中结束，未到终点
+            self._report("道中", [self._battle("道中", "D")], oil=4),
+            # 以 B2 结束但不是 Boss 终点（策略撤退未开打）：不计入任何完成率
+            self._report("B2", [], oil=2),
+        ]
+        for report in reports:
+            _accumulate_map_epoch(state, report, self.SHIPS)
+        return state
+
+    def test_boss_rates_use_boss_battle_denominator(self):
+        state = self._collect()
+
+        self.assertEqual(state["boss_battles"], 2)
+        self.assertEqual(state["boss_flagship_sinks"], 1)
+        self.assertEqual(state["boss_result_counts"]["SS"], 1)
+        self.assertEqual(state["boss_result_counts"]["S"], 1)
+        self.assertEqual(
+            {flag: count for flag, count in state["boss_result_counts"].items() if count},
+            {"SS": 1, "S": 1},
+        )
+
+        summary = MapSimulationManager._build_map_summary(
+            completed=4,
+            boss_battles=state["boss_battles"],
+            boss_flagship_sinks=state["boss_flagship_sinks"],
+            node_statistics=state["node_statistics"],
+            friend_ship_names=self.SHIPS,
+            supply_totals=state["supply_totals"],
+            first_record=state["first_record"],
+            boss_statistics=state["boss_statistics"],
+            boss_result_counts=state["boss_result_counts"],
+            boss_end_counts=state["boss_end_counts"],
+        )
+
+        # Boss 综合胜率 = 所有 Boss 点 SS+S 场次 / Boss 战斗场次
+        self.assertEqual(summary["boss_win_rate"], 100.0)
+        # Boss 旗舰击沉率 = 旗舰击沉场次 / Boss 战斗场次
+        self.assertEqual(summary["boss_flagship_sink_rate"], 50.0)
+        # 完成率 = 抵达 Boss 终点的局数 / 总局数
+        self.assertEqual(state["boss_end_counts"], {"B1": 2, "B2": 0})
+        self.assertEqual(summary["completion_rate"], 50.0)
+
+        bosses = {entry["name"]: entry for entry in summary["boss_statistics"]}
+        # 以 B1 为终点结束 2 局（2 局都开打），B2 无人以终点结束
+        self.assertEqual(bosses["B1"]["simulations"], 2)
+        self.assertEqual(bosses["B1"]["clear_rate"], 100.0)
+        self.assertEqual(bosses["B1"]["flagship_sink_rate"], 50.0)
+        self.assertEqual(bosses["B1"]["completion_rate"], 50.0)
+        self.assertEqual(bosses["B2"]["simulations"], 0)
+        self.assertEqual(bosses["B2"]["completion_rate"], 0.0)
+        # 各 Boss 完成率之和 = 总完成率
+        self.assertEqual(
+            bosses["B1"]["completion_rate"] + bosses["B2"]["completion_rate"],
+            summary["completion_rate"],
+        )
+        # 资源消耗仍按整局累加
+        self.assertEqual(state["supply_totals"]["oil"], 28)
+        self.assertEqual(state["supply_totals"]["dcitem"], 1)
+
+    def test_parallel_delta_merge_keeps_new_counters(self):
+        target = _new_map_state(self.NODES, self.BOSSES, self.SHIPS)
+        _accumulate_map_epoch(
+            target,
+            self._report(
+                "B1",
+                [self._battle("B1", "SS", boss=True, sunk=True)],
+                end_with_boss=True,
+            ),
+            self.SHIPS,
+        )
+        delta = _new_map_state(self.NODES, self.BOSSES, self.SHIPS)
+        _accumulate_map_epoch(
+            delta,
+            self._report(
+                "B2",
+                [self._battle("B2", "A", boss=True, sunk=False)],
+                end_with_boss=True,
+            ),
+            self.SHIPS,
+        )
+
+        _merge_map_delta(target, delta)
+
+        self.assertEqual(target["boss_battles"], 2)
+        self.assertEqual(target["boss_flagship_sinks"], 1)
+        self.assertEqual(target["boss_result_counts"]["SS"], 1)
+        self.assertEqual(target["boss_result_counts"]["A"], 1)
+        self.assertEqual(target["boss_end_counts"], {"B1": 1, "B2": 1})
+
+
 class RoundaboutEndPhaseTest(unittest.TestCase):
     def test_successful_roundabout_skips_every_end_phase_settlement(self):
         battle = BattleUtil.__new__(BattleUtil)
-        battle.timer = SimpleNamespace(
-            round_flag=True,
-            run_end_skill=MagicMock(),
-        )
+        battle.timer = SimpleNamespace(round_flag=True)
+        end_ship = SimpleNamespace(run_end_skill=MagicMock())
+        battle.friend = SimpleNamespace(ship=[end_ship])
+        battle.enemy = SimpleNamespace(ship=[end_ship])
         battle.supply_cost = MagicMock()
 
         BattleUtil.end_phase(battle)
 
-        battle.timer.run_end_skill.assert_not_called()
+        end_ship.run_end_skill.assert_not_called()
         battle.supply_cost.assert_not_called()
 
 

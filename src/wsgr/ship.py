@@ -83,6 +83,7 @@ class Ship(Time):
 
         self._skill = []        # 技能(未实例化)
         self.skill = []         # 技能
+        self.end_skill = []     # 结束阶段技能
         self.equipment = []     # 装备
         self.load = []          # 搭载
         self.strategy = []      # 战术
@@ -241,13 +242,14 @@ class Ship(Time):
     def init_skill(self, friend, enemy):
         """舰船技能实例化，并结算常驻面板技能和战术"""
         self.skill = []
+        self.end_skill = []
         for skill in self._skill[:]:
             tmp_skill = skill(self.timer, self)
             if tmp_skill.is_common():  # 常驻面板技能，仅初始化一次，后续不再处理
                 tmp_skill.activate(friend, enemy)
                 self._skill.remove(skill)
             elif tmp_skill.is_end_skill():
-                self.timer.end_skill.append(tmp_skill)
+                self.end_skill.append(tmp_skill)
             else:
                 self.skill.append(tmp_skill)
 
@@ -318,6 +320,11 @@ class Ship(Time):
             if not tmp_skill.is_prep() and \
                     tmp_skill.is_active(friend, enemy):
                 tmp_skill.activate(friend, enemy)
+
+    def run_end_skill(self, friend, enemy):
+        """结算结束阶段技能"""
+        for tmp_skill in self.end_skill:
+            tmp_skill.activate(friend, enemy)
 
     def run_strategy(self):
         """结算战术效果"""
@@ -943,6 +950,19 @@ class Ship(Time):
                     tmp_equip.load = self.load[tmp_equip.enum - 1]
         return supply
 
+    def mark_snapshot(self):
+        """记录出征前的初始状态（自身属性 + 各装备），供每局复位使用。"""
+        snapshot = super().mark_snapshot()
+        for equip in self.equipment:
+            equip.mark_snapshot()
+        return snapshot
+
+    def rewind_snapshot(self):
+        """恢复初始状态（之后由 init_skill() 重新实例化技能）。"""
+        super().rewind_snapshot()
+        for equip in self.equipment:
+            equip.rewind_snapshot()
+
 
 class LargeShip(Ship):
     """大型船总类"""
@@ -1032,23 +1052,6 @@ class AntiSubShip(Ship):
         from src.wsgr.formulas import AntiSubAtk, NightAntiSubAtk
         self.anti_sub_atk = AntiSubAtk  # 反潜攻击
         self.night_anti_sub_atk = NightAntiSubAtk  # 夜战反潜攻击
-
-    def get_act_indicator(self):
-        from src.wsgr.phase import AntiSubPhase
-        # 跳过阶段，优先级最高
-        for tmp_buff in self.temper_buff:
-            if tmp_buff.name == 'not_act_phase' and tmp_buff.is_active():
-                return False
-
-        # 可参与阶段
-        for tmp_buff in self.temper_buff:
-            if tmp_buff.name == 'act_phase' and tmp_buff.is_active():
-                if isinstance(self.timer.phase, AntiSubPhase):
-                    return True
-
-        # 默认行动模式
-        phase_name = type(self.timer.phase).__name__
-        return self.act_phase_indicator[phase_name](self)
 
 
 class Aircraft(Ship):
@@ -1168,10 +1171,11 @@ class CVL(Aircraft, AntiSubShip, MidShip, CoverShip):
                 (x.damaged < 2) and (x.check_atk_plane_load()),
         })
 
-        from src.wsgr.formulas import AirNormalAtk, AirAntiSubAtk, NightAirAtk
+        from src.wsgr.formulas import AirNormalAtk, AirAntiSubAtk, NightAirAtk, NightAirAntiSubAtk
         self.normal_atk = AirNormalAtk  # 炮击战航空攻击
         self.anti_sub_atk = AirAntiSubAtk  # 反潜攻击
         self.night_atk = NightAirAtk  # 夜战航空攻击
+        self.night_anti_sub_atk = NightAirAntiSubAtk  # 夜战航空反潜攻击
 
     def get_act_indicator(self):
         from src.wsgr.phase import AntiSubPhase
@@ -1666,6 +1670,18 @@ class Fleet(Time):
         self.side = side
         for tmp_ship in self.ship:
             tmp_ship.set_side(side)
+
+    def mark_snapshot(self):
+        """记下舰队的初始状态（含每艘舰船），供每局复位使用。"""
+        snapshot = super().mark_snapshot()
+        for ship in self.ship:
+            ship.mark_snapshot()
+        return snapshot
+
+    def rewind_snapshot(self):
+        super().rewind_snapshot()
+        for ship in self.ship:
+            ship.rewind_snapshot()
 
     def get_init_status(self, enemy):
         """计算带路相关属性"""

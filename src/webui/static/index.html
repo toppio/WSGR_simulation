@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>WSGR · 战斗模拟</title>
-  <link rel="stylesheet" href="styles.css?v=map-ui-97">
+  <link rel="stylesheet" href="styles.css?v=map-ui-101">
 </head>
 <body>
   <header class="topbar">
@@ -109,8 +109,17 @@
   <main id="map-page" class="map-page" data-page-panel="map" hidden>
     <section class="map-page-head">
       <div>
-        <p class="map-eyebrow">地图名称</p>
-        <div class="map-title-row"><input id="map-name" value="未命名海图" aria-label="海图名称"></div>
+        <div class="map-title-row">
+          <div class="map-title-field">
+            <p class="map-eyebrow">地图路径</p>
+            <input id="map-dir" class="map-dir-input" placeholder="地图所在目录，可留空" aria-label="地图路径" spellcheck="false">
+          </div>
+          <span class="map-dir-separator" aria-hidden="true">/</span>
+          <div class="map-title-field">
+            <p class="map-eyebrow">地图名称</p>
+            <input id="map-name" class="map-name-input" value="未命名海图" aria-label="海图名称">
+          </div>
+        </div>
       </div>
       <div class="map-page-controls">
         <article class="map-simulation-settings" aria-label="模拟设置">
@@ -133,7 +142,7 @@
           <button id="marquee-nodes" type="button" data-tooltip="框选点位" aria-label="框选点位"><svg viewBox="0 0 24 24" aria-hidden="true"><rect class="marquee-icon" x="4" y="5" width="16" height="14" rx="1"></rect></svg></button>
           <span class="map-tool-tip-host" data-tooltip="撤销上一步"><button id="undo-map-edit" type="button" aria-label="撤销" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.2 7.2 4.8 11.6 9.2 16"></path><path d="M5.3 11.6h9.1a5.1 5.1 0 0 1 0 10.2h-1.1"></path></svg></button></span>
           <span class="map-tool-tip-host" data-tooltip="重做上一步"><button id="redo-map-edit" type="button" aria-label="重做" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.8 7.2 4.4 4.4-4.4 4.4"></path><path d="M18.7 11.6H9.6a5.1 5.1 0 0 0 0 10.2h1.1"></path></svg></button></span>
-          <button id="import-map" type="button" data-tooltip="加载地图" aria-label="加载地图"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 14V3"></path><path d="m7.8 7.2 4.2-4.2 4.2 4.2"></path><path d="M5 18.5h14"></path></svg></button>
+          <button id="import-map" type="button" data-tooltip="打开项目地图" aria-label="打开项目地图"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 14V3"></path><path d="m7.8 7.2 4.2-4.2 4.2 4.2"></path><path d="M5 18.5h14"></path></svg></button>
           <button id="export-map" type="button" data-tooltip="保存地图" aria-label="保存地图"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11"></path><path d="m7.8 9.8 4.2 4.2 4.2-4.2"></path><path d="M5 18.5h14"></path></svg></button>
         </aside>
 
@@ -194,7 +203,7 @@
       </section>
 
       <section id="map-result-screen" class="map-result-screen" hidden>
-        <article class="panel map-result-panel"><div class="panel-title map-result-title"><h2>地图模拟结果</h2><button id="export-map-report" class="quiet export-report" type="button">导出战报</button></div><div class="map-result-stats"><article><span>通关率</span><strong id="map-clear-rate">—<em>%</em></strong></article><article><span>Boss 击沉</span><strong id="map-boss-sink-rate">—<em>%</em></strong></article><article><span>资源消耗</span><strong id="map-resource-total">—</strong></article><article><span>模拟次数</span><strong id="map-simulation-count">—</strong></article></div><div id="map-result-breakdown" class="map-result-breakdown" hidden><section class="map-statistics-section"><div class="map-statistics-scroll"><h3>点位战果统计</h3><div id="map-node-results"></div><h3 class="map-resource-heading">资源消耗统计</h3><div id="map-resource-results"></div></div></section><section class="map-battle-detail-section"><h3>战斗详情</h3><pre id="map-battle-detail" class="map-battle-detail"></pre></section></div><div id="map-result-placeholder" class="map-result-placeholder"><span>◌</span><h2>等待地图模拟</h2><p>完成模拟后将在这里展示各点战果、中大破统计与一场完整战斗详情。</p><button class="quiet" data-map-view="editor">返回地图编辑</button></div></article>
+        <article class="panel map-result-panel"><div class="panel-title map-result-title"><h2>地图模拟结果</h2><button id="export-map-report" class="quiet export-report" type="button">导出战报</button></div><div class="map-result-stats"><article><span>Boss综合胜率</span><strong id="map-boss-win-rate">—<em>%</em></strong></article><article><span>Boss旗舰击沉</span><strong id="map-boss-sink-rate">—<em>%</em></strong></article><article><span>完成率</span><strong id="map-completion-rate">—<em>%</em></strong></article><article><span>资源消耗</span><strong id="map-resource-total">—</strong></article><article><span>模拟次数</span><strong id="map-simulation-count">—</strong></article></div><div id="map-result-breakdown" class="map-result-breakdown" hidden><section class="map-statistics-section"><div class="map-statistics-scroll"><h3>点位战果统计</h3><div id="map-node-results"></div><h3 class="map-resource-heading">资源消耗统计</h3><div id="map-resource-results"></div></div></section><section class="map-battle-detail-section"><h3>战斗详情</h3><pre id="map-battle-detail" class="map-battle-detail"></pre></section></div><div id="map-result-placeholder" class="map-result-placeholder"><span>◌</span><h2>等待地图模拟</h2><p>完成模拟后将在这里展示各点战果、中大破统计与一场完整战斗详情。</p><button class="quiet" data-map-view="editor">返回地图编辑</button></div></article>
       </section>
       </section>
     </section>
@@ -231,6 +240,7 @@
     <article class="map-condition-card"><div class="condition-top"><select class="condition-type" aria-label="条件类型"><option value="num">舰船数量</option><option value="leader">旗舰舰种</option><option value="status">舰队属性</option></select><button class="remove-condition" type="button" aria-label="删除条件">×</button></div><div class="condition-fields"></div></article>
   </template>
 
+  <dialog id="map-open-dialog" class="confirm-dialog map-open-dialog"><form method="dialog"><h2>打开项目地图</h2><p class="map-open-note">根目录 depend/map; 点击目录展开。</p><div class="map-open-frame"><div id="map-open-list" class="map-open-list"></div></div><div class="dialog-actions"><button id="open-map-file" type="button" class="quiet">从本机文件导入…</button><span></span><button value="cancel" class="quiet">取消</button></div></form></dialog>
   <dialog id="map-confirm-dialog" class="confirm-dialog"><form method="dialog"><h2>清空地图？</h2><p>这会移除当前地图中的所有点位、路线与敌方舰队，并恢复为单个入口节点。</p><div class="confirm-actions"><button value="cancel" class="quiet">取消</button><button id="map-confirm-action" value="default" class="danger">确认清空</button></div></form></dialog>
   <dialog id="map-overwrite-confirm" class="confirm-dialog"><form method="dialog"><h2>覆盖同名地图？</h2><p id="map-overwrite-confirm-message"></p><div class="confirm-actions"><button value="cancel" class="quiet">取消</button><button value="overwrite" class="danger">确认覆盖</button></div></form></dialog>
   <dialog id="map-save-confirm" class="confirm-dialog"><form method="dialog"><h2>地图尚未保存</h2><p id="map-save-confirm-message"></p><div class="confirm-actions"><button value="cancel" class="quiet">取消</button><button value="save" class="run">保存地图并继续</button></div></form></dialog>
@@ -298,8 +308,18 @@
   </dialog>
   <dialog id="environment-settings-dialog" class="ship-editor environment-dialog">
     <form method="dialog">
-      <div class="dialog-heading"><div class="panel-title"><h2>全局增益设定</h2></div><button type="button" data-close-environment-settings aria-label="关闭">×</button></div>
+      <div class="dialog-heading"><div class="panel-title"><h2>设定</h2></div><button type="button" data-close-environment-settings aria-label="关闭">×</button></div>
       <div class="environment-settings-content">
+        <h3 class="settings-group-title">模拟设置</h3>
+        <section class="environment-section simulation-section">
+          <h3>并行进程数</h3>
+          <div id="simulation-workers-stepper" class="stepper" role="group" aria-label="并行进程数">
+            <button type="button" class="stepper-button" data-simulation-worker-step="-1" aria-label="减少并行进程数">−</button>
+            <span id="simulation-workers-value" class="stepper-value" aria-live="polite">4</span>
+            <button type="button" class="stepper-button" data-simulation-worker-step="1" aria-label="增加并行进程数">+</button>
+          </div>
+        </section>
+        <h3 class="settings-group-title">全局增益设定</h3>
         <section class="environment-section recon-section">
           <h3>索敌状态</h3>
           <div id="environment-recon-state" class="environment-recon-state" data-value="none" role="radiogroup" aria-label="索敌状态">
@@ -358,9 +378,10 @@
   </dialog>
   <dialog id="clear-confirm" class="confirm-dialog"><form method="dialog"><h2>清空战斗配置？</h2><p>这会移除双方舰队配置，并重置模拟设置与本页统计结果。</p><div class="confirm-actions"><button value="cancel" class="quiet">取消</button><button id="confirm-clear" type="button" class="danger">确认清空</button></div></form></dialog>
   <dialog id="history-clear-confirm" class="confirm-dialog"><form method="dialog"><h2>清空历史战报？</h2><p>这只会移除单点模拟与地图模拟的全部历史记录，不影响其他页面。</p><div class="confirm-actions"><button value="cancel" class="quiet">取消</button><button id="confirm-clear-history" type="button" class="danger">确认清空</button></div></form></dialog>
+  <dialog id="history-delete-confirm" class="confirm-dialog"><form method="dialog"><h2>删除这条历史战报？</h2><p id="history-delete-message"></p><div class="confirm-actions"><button value="cancel" class="quiet">取消</button><button id="confirm-delete-history" type="button" class="danger">确认删除</button></div></form></dialog>
   <input id="config-file" type="file" accept=".yaml,.yml,.xml" hidden>
   <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
-  <script src="map-editor.js?v=map-ui-66"></script>
-  <script src="app.js?v=map-ui-33"></script>
+  <script src="map-editor.js?v=map-ui-67"></script>
+  <script src="app.js?v=map-ui-36"></script>
 </body>
 </html>

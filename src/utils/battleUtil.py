@@ -28,6 +28,24 @@ class BattleUtil(Time):
         self.enemy = enemy
         self.start_health = None
 
+    def mark_snapshot(self):
+        """记下战斗开始前的初始状态（自身 + 双方舰队）。"""
+        snapshot = super().mark_snapshot()
+        self.friend.mark_snapshot()
+        self.enemy.mark_snapshot()
+        return snapshot
+
+    def rewind_snapshot(self):
+        """复位到初始状态，用于下一轮模拟。"""
+        # 首次调用时对象还处在初始状态，只需记下快照
+        if self._snapshot is None:
+            self.mark_snapshot()
+            return
+        self.timer.refresh()
+        super().rewind_snapshot()
+        self.friend.rewind_snapshot()
+        self.enemy.rewind_snapshot()
+
     def start(self):
         """进行战斗流程"""
         self.battle_init()
@@ -49,6 +67,7 @@ class BattleUtil(Time):
 
     def battle_init(self):
         """战斗初始化, 非地图入口时返回reinit"""
+        self.mark_snapshot()   # 任何首次改动之前先记下初始状态
         if self.timer.point is not None and self.timer.point.level != 0:
             return self.battle_reinit()
 
@@ -135,7 +154,10 @@ class BattleUtil(Time):
             return
 
         # 结束阶段技能
-        self.timer.run_end_skill(self.friend, self.enemy)
+        for tmp_ship in self.friend.ship:
+            tmp_ship.run_end_skill(self.friend, self.enemy)
+        for tmp_ship in self.enemy.ship:
+            tmp_ship.run_end_skill(self.enemy, self.friend)
 
         # 资源消耗
         self.supply_cost()

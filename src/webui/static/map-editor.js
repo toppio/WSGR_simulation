@@ -65,6 +65,9 @@
 
   const dom = {
     mapName: document.querySelector('#map-name'),
+    mapDir: document.querySelector('#map-dir'),
+    mapOpenDialog: document.querySelector('#map-open-dialog'),
+    mapOpenList: document.querySelector('#map-open-list'),
     viewport: document.querySelector('#canvas-viewport'),
     world: document.querySelector('#canvas-world'),
     canvasMapName: document.querySelector('#canvas-map-name'),
@@ -146,6 +149,7 @@
     return {
       map: {
         mapid: '未命名海图',
+        dir: '',
         name: '未命名海图',
         entrance: 'node-entrance',
         canvas: { width: WORLD_WIDTH, height: WORLD_HEIGHT },
@@ -198,6 +202,51 @@
 
   function currentMap() {
     return mapDocument.map;
+  }
+
+  // A map reference is the POSIX relative path below depend/map: the category
+  // folder chain plus the leaf file name (without the .yaml extension).
+  // 地图文件内部只保存叶子名，分类目录由编辑器状态单独携带。
+  const MAP_SEGMENT_INVALID_PATTERN = /[<>:"/\\|?*\u0000-\u001F]/;
+
+  function normalizeMapDir(value) {
+    const raw = String(value ?? '').trim().replace(/\\/g, '/');
+    if (!raw) return '';
+    if (raw.startsWith('/') || /^[A-Za-z]:/.test(raw)) {
+      throw new Error('分类目录必须是相对路径，不能以 / 开头');
+    }
+    const dir = raw.replace(/\/+$/, '');
+    const segments = dir.split('/');
+    for (const segment of segments) {
+      if (!segment || segment === '.' || segment === '..') {
+        throw new Error('分类目录包含无效的路径段');
+      }
+      if (MAP_SEGMENT_INVALID_PATTERN.test(segment) || /[. ]$/.test(segment)) {
+        throw new Error(`分类目录“${segment}”包含文件名保留字符`);
+      }
+    }
+    return segments.join('/');
+  }
+
+  function mapDirOf(map) {
+    return String(map?.dir ?? '').trim();
+  }
+
+  function mapRefWithDir(dir, mapid) {
+    const normalized = normalizeMapDir(dir);
+    const leaf = String(mapid ?? '').trim();
+    if (!leaf) return '';
+    return normalized ? `${normalized}/${leaf}` : leaf;
+  }
+
+  function mapRefOf(map, dir) {
+    return mapRefWithDir(dir === undefined ? mapDirOf(map) : dir, map?.mapid);
+  }
+
+  function mapDirFromRef(mapRef) {
+    const normalized = String(mapRef ?? '').trim().replace(/\\/g, '/');
+    const index = normalized.lastIndexOf('/');
+    return index > 0 ? normalized.slice(0, index) : '';
   }
 
   function cloneMapData(value) {
@@ -752,6 +801,7 @@
   function render() {
     recalculateNodeLevels();
     dom.mapName.value = currentMap().name;
+    dom.mapDir.value = mapDirOf(currentMap());
     dom.canvasMapName.textContent = currentMap().name;
     renderNodes();
     renderRoutes();
@@ -1697,8 +1747,10 @@
     render();
   }
 
-  function applyMapDocument(document) {
-    mapDocument = normalizeDocument(document);
+  function applyMapDocument(document, mapRef = '') {
+    // 载入地图时的分类目录来自引用路径（文件内只保存叶子名）。
+    const referenced = String(mapRef ?? '').trim();
+    mapDocument = normalizeDocument(document, referenced ? mapDirFromRef(referenced) : undefined);
     mapUserRules = createDefaultUserRules();
     clearUndoHistory();
     selectedNodeIds.clear();
@@ -1717,11 +1769,11 @@
     });
   }
 
-  async function persistMapDocument(map, overwrite = false) {
+  async function persistMapDocument(map, mapid, overwrite = false) {
     const response = await fetch('/api/map/save', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ map, overwrite }),
+      body: JSON.stringify({ map, mapid, overwrite }),
     });
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(payload.error || '保存地图失败');
@@ -1730,17 +1782,17 @@
 
   async function saveMapDocument() {
     try {
-      const map = serializeDocument(normalizeDocument(serializeDocument(mapDocument)));
-      let payload = await persistMapDocument(map);
+      const map = serializeDocument(normalizeDocument(serializeDocument(mapDocument), mapDirOf(currentMap())));
+      const mapid = mapRefOf(map, mapDirOf(currentMap()));
+      let payload = await persistMapDocument(map, mapid);
       if (payload.requires_overwrite) {
-        const confirmed = await confirmMapOverwrite(payload.filename);
+        const confirmed = await confirmMapOverwrite(payload.path || payload.filename);
         if (!confirmed) return;
-        payload = await persistMapDocument(map, true);
+        payload = await persistMapDocument(map, mapid, true);
       }
       if (!payload.saved) throw new Error('地图未保存');
-      showToast(payload.overwritten
-        ? `地图已覆盖：${payload.filename}`
-        : `地图已保存为 ${payload.filename}`);
+      const saved = payload.path || payload.filename;
+      showToast(payload.overwritten ? `地图已覆盖：${saved}` : `地图已保存为 ${saved}`);
     } catch (error) {
       showToast(error.message, true);
     }
@@ -1757,9 +1809,117 @@
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.error || '地图 YAML 解析失败');
       applyMapDocument(payload.map);
-      showToast(`已导入 ${currentMap().nodes.length} 个点位和 ${currentMap().routes.length} 条路线`);
+      // 与「打开项目地图」保持同一句提示：本机文件没有目录，只有文件名。
+      const opened = file.name || `${currentMap().name}.yaml`;
+      showToast(`已打开 ${opened}`);
     } catch (error) {
       showToast(`导入失败：${error.message}`, true);
+    }
+  }
+
+  // 浏览器本机文件选择器不提供所在目录，因此项目内的地图一律按相对路径打开，
+  // 这样分类目录可以直接从引用路径回填。列表按路径分层，目录默认收起。
+  const mapOpenExpandedDirs = new Set();
+  let projectMapList = [];
+
+  function projectMapTree(maps) {
+    const root = { dirs: new Map(), maps: [] };
+    maps.forEach(mapid => {
+      const parts = mapid.split('/');
+      const leaf = parts.pop();
+      let node = root;
+      parts.forEach(segment => {
+        if (!node.dirs.has(segment)) {
+          node.dirs.set(segment, { dirs: new Map(), maps: [] });
+        }
+        node = node.dirs.get(segment);
+      });
+      node.maps.push({ mapid, leaf });
+    });
+    return root;
+  }
+
+  function appendProjectMapRows(node, dirPath, depth, rows) {
+    node.maps
+      .sort((a, b) => a.leaf.localeCompare(b.leaf, 'zh'))
+      .forEach(entry => {
+        const item = document.createElement('button');
+        item.type = 'button';
+        item.className = 'map-open-item';
+        item.dataset.mapid = entry.mapid;
+        item.style.setProperty('--depth', String(depth));
+        const name = document.createElement('strong');
+        name.textContent = entry.leaf;
+        item.append(name);
+        item.addEventListener('click', () => openProjectMap(entry.mapid));
+        rows.push(item);
+      });
+    [...node.dirs.keys()].sort((a, b) => a.localeCompare(b, 'zh')).forEach(name => {
+      const child = node.dirs.get(name);
+      const childPath = dirPath ? `${dirPath}/${name}` : name;
+      const collapsed = !mapOpenExpandedDirs.has(childPath);
+      const folder = document.createElement('button');
+      folder.type = 'button';
+      folder.className = collapsed ? 'map-open-folder collapsed' : 'map-open-folder';
+      folder.dataset.dir = childPath;
+      folder.style.setProperty('--depth', String(depth));
+      const caret = document.createElement('i');
+      caret.className = 'map-open-caret';
+      caret.setAttribute('aria-hidden', 'true');
+      caret.textContent = '▾';
+      const label = document.createElement('strong');
+      label.textContent = name;
+      folder.append(caret, label);
+      folder.addEventListener('click', () => {
+        if (mapOpenExpandedDirs.has(childPath)) mapOpenExpandedDirs.delete(childPath);
+        else mapOpenExpandedDirs.add(childPath);
+        renderProjectMapList(projectMapList);
+      });
+      rows.push(folder);
+      if (!collapsed) appendProjectMapRows(child, childPath, depth + 1, rows);
+    });
+  }
+
+  function renderProjectMapList(maps) {
+    if (!maps.length) {
+      const paragraph = document.createElement('p');
+      paragraph.className = 'map-open-empty';
+      paragraph.textContent = 'depend/map 下还没有地图。';
+      dom.mapOpenList.replaceChildren(paragraph);
+      return;
+    }
+    const rows = [];
+    appendProjectMapRows(projectMapTree(maps), '', 0, rows);
+    dom.mapOpenList.replaceChildren(...rows);
+  }
+
+  async function openProjectMapDialog() {
+    try {
+      const response = await fetch('/api/map/list');
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || '读取项目地图列表失败');
+      projectMapList = Array.isArray(payload.maps) ? payload.maps : [];
+      renderProjectMapList(projectMapList);
+      dom.mapOpenDialog.showModal();
+    } catch (error) {
+      showToast(error.message, true);
+    }
+  }
+
+  async function openProjectMap(mapid) {
+    try {
+      const response = await fetch('/api/map/load', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mapid }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || '打开地图失败');
+      applyMapDocument(payload.map, payload.mapid || mapid);
+      dom.mapOpenDialog.close();
+      showToast(`已打开 ${payload.mapid || mapid}.yaml`);
+    } catch (error) {
+      showToast(error.message, true);
     }
   }
 
@@ -1770,12 +1930,12 @@
     return {
       battle_type: 'Map',
       friend_fleet: friendFleet,
-      map: { mapid: String(document.map.mapid || '').trim() },
+      map: { mapid: mapRefOf(document.map) },
       user_rules: cloneMapData(mapUserRules),
     };
   }
 
-  function normalizeDocument(input) {
+  function normalizeDocument(input, dirOverride) {
     if (!input || typeof input !== 'object' || Array.isArray(input)) throw new Error('YAML 顶层必须是对象');
     if (!Array.isArray(input.nodes) || !input.nodes.length) throw new Error('nodes 必须至少包含一个点位');
     if (!Array.isArray(input.routes)) throw new Error('routes 必须是数组');
@@ -1905,11 +2065,17 @@
     });
     const name = String(input.name || '未命名海图').trim();
     const mapid = name;
-    if (!mapid || mapid === '.' || mapid === '..' || /[<>:"/\\|?*\u0000-\u001F]/.test(mapid) || /[. ]$/.test(mapid)) {
-      throw new Error('mapid 不能为空，且不能包含路径或文件名保留字符');
+    if (!mapid || mapid === '.' || mapid === '..' || MAP_SEGMENT_INVALID_PATTERN.test(mapid) || /[. ]$/.test(mapid)) {
+      throw new Error('地图名称不能为空，且不能包含路径或文件名保留字符');
     }
+    // 分类目录不写入地图文件：显式传入时以传入值为准，否则沿用文件内
+    // mapid 里可能带有的目录前缀（兼容手写的完整路径引用）。
+    const declared = String(input.mapid ?? '').trim().replace(/\\/g, '/');
+    const inheritedDir = declared.includes('/') ? declared.slice(0, declared.lastIndexOf('/')) : '';
+    const dir = normalizeMapDir(dirOverride === undefined ? inheritedDir : dirOverride);
     const map = {
       mapid,
+      dir,
       name,
       entrance,
       canvas: { width: WORLD_WIDTH, height: WORLD_HEIGHT },
@@ -2153,6 +2319,9 @@
       currentMap().mapid = dom.mapName.value;
       dom.canvasMapName.textContent = dom.mapName.value;
     });
+    dom.mapDir.addEventListener('input', () => {
+      currentMap().dir = dom.mapDir.value;
+    });
     document.querySelector('#open-map-strategy').addEventListener('click', openStrategyDialog);
     document.querySelector('#close-map-strategy').addEventListener('click', cancelStrategyDialog);
     document.querySelector('#cancel-map-strategy').addEventListener('click', cancelStrategyDialog);
@@ -2239,8 +2408,9 @@
       const overallRows = [
         ['名称', currentMap().name || '未命名海图', ...bosses.map(entry => entry.name)],
         ['模拟次数', Number(summary.simulation_count || 0), ...bosses.map(entry => Number(entry.simulations || 0))],
-        ['通关率', rate(summary.clear_rate), ...bosses.map(entry => optionalRate(entry.clear_rate))],
+        ['综合胜率', rate(summary.boss_win_rate), ...bosses.map(entry => optionalRate(entry.clear_rate))],
         ['Boss旗舰击沉率', rate(summary.boss_flagship_sink_rate), ...bosses.map(entry => optionalRate(entry.flagship_sink_rate))],
+        ['完成率', rate(summary.completion_rate), ...bosses.map(entry => optionalRate(entry.completion_rate))],
         ['资源消耗', Number(summary.resource_total || 0).toFixed(1), ...bosses.map(entry => Number(entry.resource_total || 0).toFixed(1))],
         ...resourceEntries.map(([label, key, digits]) => [
           label,
@@ -2409,8 +2579,9 @@
     const renderMapSummary = summary => {
       if (!summary) return;
       latestMapSummary = summary;
-      document.querySelector('#map-clear-rate').innerHTML = `${Number(summary.clear_rate || 0).toFixed(2)}<em>%</em>`;
+      document.querySelector('#map-boss-win-rate').innerHTML = `${Number(summary.boss_win_rate || 0).toFixed(2)}<em>%</em>`;
       document.querySelector('#map-boss-sink-rate').innerHTML = `${Number(summary.boss_flagship_sink_rate || 0).toFixed(2)}<em>%</em>`;
+      document.querySelector('#map-completion-rate').innerHTML = `${Number(summary.completion_rate || 0).toFixed(2)}<em>%</em>`;
       document.querySelector('#map-resource-total').textContent = Number(summary.resource_total || 0).toFixed(1);
       document.querySelector('#map-simulation-count').textContent = Number(summary.simulation_count || 0).toLocaleString('zh-CN');
       if (!mapDamagePickerOpen) {
@@ -2426,8 +2597,9 @@
       document.querySelector('#map-result-placeholder').hidden = true;
     };
     const resetMapResultDisplay = () => {
-      document.querySelector('#map-clear-rate').innerHTML = '—<em>%</em>';
+      document.querySelector('#map-boss-win-rate').innerHTML = '—<em>%</em>';
       document.querySelector('#map-boss-sink-rate').innerHTML = '—<em>%</em>';
+      document.querySelector('#map-completion-rate').innerHTML = '—<em>%</em>';
       document.querySelector('#map-resource-total').textContent = '—';
       document.querySelector('#map-simulation-count').textContent = '—';
       document.querySelector('#map-node-results').replaceChildren();
@@ -2497,7 +2669,7 @@
         target: epoch,
       });
       try {
-        const validated = normalizeDocument(serializeDocument(mapDocument));
+        const validated = normalizeDocument(serializeDocument(mapDocument), mapDirOf(currentMap()));
         const state = await mapApi('/api/map-simulation/start', {
           method: 'POST',
           body: JSON.stringify({
@@ -2712,7 +2884,11 @@
     document.querySelector('#delete-route').addEventListener('click', deleteSelectedRoute);
     document.querySelector('#add-condition').addEventListener('click', addCondition);
 
-    document.querySelector('#import-map').addEventListener('click', () => dom.yamlFile.click());
+    document.querySelector('#import-map').addEventListener('click', openProjectMapDialog);
+    document.querySelector('#open-map-file').addEventListener('click', () => {
+      dom.mapOpenDialog.close();
+      dom.yamlFile.click();
+    });
     dom.yamlFile.addEventListener('change', () => {
       void importYamlFile(dom.yamlFile.files[0]);
       dom.yamlFile.value = '';
@@ -2784,8 +2960,11 @@
     getDocument() {
       return serializeDocument(mapDocument);
     },
-    loadDocument(document) {
-      applyMapDocument(document);
+    getMapRef() {
+      return mapRefOf(currentMap());
+    },
+    loadDocument(document, mapRef = '') {
+      applyMapDocument(document, mapRef);
     },
     getUserRules() {
       normalizeMapUserRules();

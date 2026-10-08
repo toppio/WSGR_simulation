@@ -52,6 +52,11 @@ const clearWorkspaceButton = document.querySelector('#clear-workspace');
 const clearConfirmDialog = document.querySelector('#clear-confirm');
 const clearHistoryButton = document.querySelector('#clear-history');
 const clearHistoryConfirmDialog = document.querySelector('#history-clear-confirm');
+const simulationWorkersValue = document.querySelector('#simulation-workers-value');
+const simulationWorkersStepper = document.querySelector('#simulation-workers-stepper');
+const simulationWorkerStepButtons = [
+  ...document.querySelectorAll('[data-simulation-worker-step]'),
+];
 const environmentSettingsButton = document.querySelector('#environment-settings-button');
 const environmentSettingsDialog = document.querySelector('#environment-settings-dialog');
 const environmentReconState = document.querySelector('#environment-recon-state');
@@ -82,6 +87,9 @@ const battleHistoryTable = document.querySelector('#battle-history-table');
 const mapHistoryTable = document.querySelector('#map-history-table');
 const battleHistoryEmpty = document.querySelector('#battle-history-empty');
 const mapHistoryEmpty = document.querySelector('#map-history-empty');
+const historyDeleteConfirmDialog = document.querySelector('#history-delete-confirm');
+const historyDeleteMessage = document.querySelector('#history-delete-message');
+const confirmDeleteHistoryButton = document.querySelector('#confirm-delete-history');
 
 document.addEventListener('pointerdown', event => {
   if (!(event.target instanceof Node)) return;
@@ -220,6 +228,88 @@ function addEnvironmentExtra(selected = '') {
   environmentExtraList.append(row);
   environmentSelectPickers.push(setupSearchableSelectPicker(select));
   updateEnvironmentExtraState();
+}
+
+const SIMULATION_WORKERS_MIN = 1;
+const SIMULATION_WORKERS_MAX = 32;
+const SIMULATION_WORKERS_WHEEL_THRESHOLD = 100;   // 滚轮累计多少（像素）走一步
+const SIMULATION_WORKERS_HOLD_DELAY = 400;        // 长按多久开始连续调整
+const SIMULATION_WORKERS_HOLD_INTERVAL = 120;     // 连续调整间隔
+const SIMULATION_WORKERS_HOLD_FAST_INTERVAL = 40; // 长按 1.5 秒后加速
+let simulationWorkers = 4;
+let simulationWorkersWheelDelta = 0;
+let simulationWorkersHoldTimer = 0;
+
+function setSimulationWorkers(value) {
+  const raw = Math.round(Number(value));
+  const workers = Math.min(
+    SIMULATION_WORKERS_MAX,
+    Math.max(SIMULATION_WORKERS_MIN, Number.isFinite(raw) ? raw : SIMULATION_WORKERS_MIN),
+  );
+  simulationWorkers = workers;
+  simulationWorkersValue.textContent = String(workers);
+  simulationWorkerStepButtons.forEach(button => {
+    const step = Number(button.dataset.simulationWorkerStep) || 0;
+    button.disabled = (step < 0 && workers <= SIMULATION_WORKERS_MIN)
+      || (step > 0 && workers >= SIMULATION_WORKERS_MAX);
+  });
+}
+
+function stepSimulationWorkers(step) {
+  setSimulationWorkers(simulationWorkers + step);
+}
+
+function handleSimulationWorkersWheel(event) {
+  // deltaMode: 0 像素、1 行、2 页；统一换算成像素后再累计
+  const scale = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? 100 : 1;
+  const delta = event.deltaY * scale;
+  if (!delta) return;
+  event.preventDefault();
+  if (Math.abs(delta) >= SIMULATION_WORKERS_WHEEL_THRESHOLD) {
+    // 鼠标滚轮一格（约 100 像素）：一格一步，不残留累计值
+    simulationWorkersWheelDelta = 0;
+    stepSimulationWorkers(delta < 0 ? 1 : -1);
+    return;
+  }
+  // 触控板：按累计距离走步
+  simulationWorkersWheelDelta += delta;
+  while (Math.abs(simulationWorkersWheelDelta) >= SIMULATION_WORKERS_WHEEL_THRESHOLD) {
+    // 先按累计值的方向消费掉一个阈值，再据其决定加还是减
+    const sign = simulationWorkersWheelDelta < 0 ? -1 : 1;
+    simulationWorkersWheelDelta -= sign * SIMULATION_WORKERS_WHEEL_THRESHOLD;
+    stepSimulationWorkers(sign < 0 ? 1 : -1);  // 上滚增大
+  }
+}
+
+function stopSimulationWorkersHold() {
+  if (simulationWorkersHoldTimer) {
+    window.clearTimeout(simulationWorkersHoldTimer);
+    simulationWorkersHoldTimer = 0;
+  }
+}
+
+function startSimulationWorkersHold(button, state) {
+  const step = Number(button.dataset.simulationWorkerStep) || 0;
+  if (!step) return;
+  stopSimulationWorkersHold();
+  const startedAt = Date.now();
+  const repeat = () => {
+    if (button.disabled) {
+      stopSimulationWorkersHold();
+      return;
+    }
+    state.repeated = true;
+    stepSimulationWorkers(step);
+    if (button.disabled) {   // 已到上下限：立即停止，不再排空转的定时器
+      stopSimulationWorkersHold();
+      return;
+    }
+    const interval = Date.now() - startedAt > 1500
+      ? SIMULATION_WORKERS_HOLD_FAST_INTERVAL
+      : SIMULATION_WORKERS_HOLD_INTERVAL;
+    simulationWorkersHoldTimer = window.setTimeout(repeat, interval);
+  };
+  simulationWorkersHoldTimer = window.setTimeout(repeat, SIMULATION_WORKERS_HOLD_DELAY);
 }
 
 function renderEnvironmentSettings(payload) {
@@ -395,7 +485,33 @@ function resultRates(summary, divisor) {
   });
 }
 
-function buildHistoryTable(container, headers, rows) {
+const historyTrashIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.6 6.6h14.8"/><path d="M9.6 6.6V4.7a1 1 0 0 1 1-1h2.8a1 1 0 0 1 1 1v1.9"/><path d="M6.7 6.6l.85 12.2a1.6 1.6 0 0 0 1.6 1.5h5.7a1.6 1.6 0 0 0 1.6-1.5l.85-12.2"/><path d="M10.4 10.2v6.7"/><path d="M13.6 10.2v6.7"/></svg>';
+
+function buildHistoryIdCell(label, rowKey, onDelete) {
+  const cell = document.createElement('td');
+  cell.className = 'history-id-cell';
+  const wrapper = document.createElement('span');
+  wrapper.className = 'history-id';
+  const number = document.createElement('span');
+  number.className = 'history-id-number';
+  number.textContent = String(label ?? '—');
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'history-delete';
+  button.title = '删除该行记录';
+  button.setAttribute('aria-label', `删除编号 ${label} 的记录`);
+  button.innerHTML = historyTrashIcon;
+  button.addEventListener('click', event => {
+    event.stopPropagation();
+    onDelete(rowKey, { label, button });
+  });
+  wrapper.append(number, button);
+  cell.append(wrapper);
+  return cell;
+}
+
+function buildHistoryTable(container, headers, rows, options = {}) {
+  const { rowKeys = [], onDelete = null } = options;
   if (!rows.length) {
     container.replaceChildren();
     return;
@@ -412,13 +528,18 @@ function buildHistoryTable(container, headers, rows) {
   const thead = document.createElement('thead');
   thead.append(headRow);
   const tbody = document.createElement('tbody');
-  rows.forEach(values => {
+  rows.forEach((values, rowIndex) => {
     const row = document.createElement('tr');
-    row.append(...values.map(value => {
+    const rowKey = rowKeys[rowIndex];
+    values.forEach((value, columnIndex) => {
+      if (columnIndex === 0 && onDelete && rowKey) {
+        row.append(buildHistoryIdCell(value, rowKey, onDelete));
+        return;
+      }
       const cell = document.createElement('td');
       cell.textContent = String(value ?? '—');
-      return cell;
-    }));
+      row.append(cell);
+    });
     tbody.append(row);
   });
   table.append(thead, tbody);
@@ -463,7 +584,7 @@ function mapHistoryData(includeDamageRates = false) {
   const headers = [
     '编号', '模拟次数',
     ...Array.from({ length: 6 }, (_, index) => `舰船${index + 1}`),
-    '通关率',
+    '综合胜率',
     ...historyResultFlags.map(flag => `${flag}概率`),
     '旗舰击沉率',
     '燃油消耗', '弹药消耗', '钢材消耗', '铝材消耗',
@@ -475,14 +596,16 @@ function mapHistoryData(includeDamageRates = false) {
       ? Array.from({ length: 6 }, (_, index) => `舰船${index + 1}大破率`)
       : []),
   ];
-  const rows = mapHistory.flatMap(entry => {
+  const rows = [];
+  const rowKeys = [];
+  mapHistory.forEach(entry => {
     const ships = Array.from(
       { length: 6 },
       (_, index) => entry.summary.friend_ship_names?.[index] || '——',
     );
-    return (entry.summary.boss_statistics || [])
+    (entry.summary.boss_statistics || [])
       .filter(boss => Number(boss.simulations || 0) > 0)
-      .map(boss => {
+      .forEach(boss => {
         const damageRates = includeDamageRates
           ? [
             ...Array.from(
@@ -495,35 +618,103 @@ function mapHistoryData(includeDamageRates = false) {
             ),
           ]
           : [];
-        return [
-        `${entry.id}-${boss.name}`,
-        Number(boss.simulations || 0),
-        ...ships,
-        historyRate(boss.clear_rate),
-        ...historyResultFlags.map(flag => historyRate(boss.result_rates?.[flag])),
-        historyRate(boss.flagship_sink_rate),
-        Number(boss.supply?.oil || 0).toFixed(1),
-        Number(boss.supply?.ammo || 0).toFixed(1),
-        Number(boss.supply?.steel || 0).toFixed(1),
-        Number(boss.supply?.almn || 0).toFixed(1),
-        Number(boss.average_bucket || 0).toFixed(2),
-        Number(boss.average_dcitem || 0).toFixed(2),
-        ...damageRates,
-      ];
+        rows.push([
+          `${entry.id}-${boss.name}`,
+          Number(boss.simulations || 0),
+          ...ships,
+          historyRate(boss.clear_rate),
+          ...historyResultFlags.map(flag => historyRate(boss.result_rates?.[flag])),
+          historyRate(boss.flagship_sink_rate),
+          Number(boss.supply?.oil || 0).toFixed(1),
+          Number(boss.supply?.ammo || 0).toFixed(1),
+          Number(boss.supply?.steel || 0).toFixed(1),
+          Number(boss.supply?.almn || 0).toFixed(1),
+          Number(boss.average_bucket || 0).toFixed(2),
+          Number(boss.average_dcitem || 0).toFixed(2),
+          ...damageRates,
+        ]);
+        rowKeys.push({ type: 'map', id: entry.id, name: boss.name });
       });
   });
-  return { headers, rows };
+  return { headers, rows, rowKeys };
 }
 
 function renderHistory() {
   const battleData = battleHistoryData();
   const mapData = mapHistoryData();
-  buildHistoryTable(battleHistoryTable, battleData.headers, battleData.rows);
-  buildHistoryTable(mapHistoryTable, mapData.headers, mapData.rows);
+  buildHistoryTable(battleHistoryTable, battleData.headers, battleData.rows, {
+    rowKeys: battleHistory.map(entry => ({ type: 'battle', id: entry.id })),
+    onDelete: handleHistoryRowDelete,
+  });
+  buildHistoryTable(mapHistoryTable, mapData.headers, mapData.rows, {
+    rowKeys: mapData.rowKeys,
+    onDelete: handleHistoryRowDelete,
+  });
   battleHistoryEmpty.hidden = battleData.rows.length > 0;
   mapHistoryEmpty.hidden = mapData.rows.length > 0;
   const activeRows = activeHistoryView === 'battle' ? battleData.rows : mapData.rows;
   exportHistoryButton.disabled = activeRows.length === 0;
+}
+
+function confirmHistoryDelete(message) {
+  return new Promise(resolve => {
+    historyDeleteMessage.textContent = message;
+    historyDeleteConfirmDialog.addEventListener('close', () => {
+      resolve(historyDeleteConfirmDialog.returnValue === 'delete');
+    }, { once: true });
+    historyDeleteConfirmDialog.showModal();
+  });
+}
+
+function renumberHistory(entries) {
+  entries.forEach((entry, index) => {
+    entry.id = index + 1;
+  });
+}
+
+async function deleteBattleHistoryEntry(id) {
+  const entry = battleHistory.find(item => item.id === id);
+  if (!entry) return;
+  const label = entry.id;
+  const confirmed = await confirmHistoryDelete(
+    `将删除编号 ${label} 的单点模拟记录（模拟 ${formatNumber(entry.completed)} 次），删除后无法恢复。`,
+  );
+  if (!confirmed) return;
+  const index = battleHistory.indexOf(entry);
+  if (index < 0) return;
+  battleHistory.splice(index, 1);
+  renumberHistory(battleHistory);
+  renderHistory();
+  showNotice(`已删除编号 ${label} 的单点模拟记录`);
+}
+
+async function deleteMapHistoryRow(id, name) {
+  const entry = mapHistory.find(item => item.id === id);
+  if (!entry) return;
+  const bosses = entry.summary.boss_statistics || [];
+  const boss = bosses.find(item => item.name === name && Number(item.simulations || 0) > 0);
+  if (!boss) return;
+  const label = `${entry.id}-${name}`;
+  const confirmed = await confirmHistoryDelete(
+    `将删除编号 ${label} 的地图模拟记录（模拟 ${formatNumber(boss.simulations)} 次），删除后无法恢复。`,
+  );
+  if (!confirmed) return;
+  entry.summary.boss_statistics = bosses.filter(item => item !== boss);
+  const remaining = entry.summary.boss_statistics
+    .some(item => Number(item.simulations || 0) > 0);
+  if (!remaining) {
+    const index = mapHistory.indexOf(entry);
+    if (index >= 0) mapHistory.splice(index, 1);
+  }
+  renumberHistory(mapHistory);
+  renderHistory();
+  showNotice(`已删除编号 ${label} 的地图模拟记录`);
+}
+
+function handleHistoryRowDelete(rowKey) {
+  if (rowKey?.type === 'battle') return deleteBattleHistoryEntry(rowKey.id);
+  if (rowKey?.type === 'map') return deleteMapHistoryRow(rowKey.id, rowKey.name);
+  return undefined;
 }
 
 function switchHistoryView(view = 'battle') {
@@ -2032,13 +2223,44 @@ environmentEngineeringToggle.addEventListener('click', () => {
 });
 environmentCar.addEventListener('change', syncEnvironmentCarCountry);
 addEnvironmentExtraButton.addEventListener('click', () => addEnvironmentExtra());
+// 并行进程数：滚轮调整 + 长按连续调整（点按仍然是单步）
+simulationWorkersStepper.addEventListener('wheel', handleSimulationWorkersWheel, { passive: false });
+simulationWorkerStepButtons.forEach(button => {
+  const step = Number(button.dataset.simulationWorkerStep) || 0;
+  const holdState = { repeated: false };
+  button.addEventListener('pointerdown', event => {
+    if (event.button) return;   // 只响应主键与触摸
+    holdState.repeated = false;
+    event.preventDefault();
+    startSimulationWorkersHold(button, holdState);
+  });
+  ['pointerup', 'pointercancel', 'pointerleave', 'blur'].forEach(type => {
+    button.addEventListener(type, stopSimulationWorkersHold);
+  });
+  button.addEventListener('click', () => {
+    // 长按已经连续调整过，松开时的 click 不再重复加一步
+    if (holdState.repeated) {
+      holdState.repeated = false;
+      return;
+    }
+    setSimulationWorkers(simulationWorkers + step);
+  });
+});
+window.addEventListener('pointerup', stopSimulationWorkersHold);
+window.addEventListener('blur', stopSimulationWorkersHold);
 document.querySelectorAll('[data-close-environment-settings]').forEach(button => {
   button.addEventListener('click', () => environmentSettingsDialog.close('cancel'));
 });
 environmentSettingsButton.addEventListener('click', async () => {
   environmentSettingsButton.disabled = true;
   try {
-    renderEnvironmentSettings(await api('/api/environment/settings'));
+    // 同一窗口内的两个主标题分别来自各自的设置接口
+    const [environment, simulation] = await Promise.all([
+      api('/api/environment/settings'),
+      api('/api/simulation/settings'),
+    ]);
+    renderEnvironmentSettings(environment);
+    setSimulationWorkers(simulation.settings?.workers ?? 4);
     environmentSettingsDialog.showModal();
   } catch (error) {
     showNotice(error.message, true);
@@ -2050,12 +2272,17 @@ saveEnvironmentSettingsButton.addEventListener('click', async () => {
   if (!environmentCarCountry.reportValidity()) return;
   saveEnvironmentSettingsButton.disabled = true;
   try {
+    // 两部分写同一个文件，必须顺序保存，避免互相覆盖
     const payload = await api('/api/environment/settings', {
       method: 'POST',
       body: JSON.stringify({ settings: collectEnvironmentSettings() }),
     });
+    await api('/api/simulation/settings', {
+      method: 'POST',
+      body: JSON.stringify({ settings: { workers: simulationWorkers } }),
+    });
     environmentSettingsDialog.close('saved');
-    showNotice(`全局增益已保存至 ${payload.path}`);
+    showNotice(`设定已保存至 ${payload.path}`);
   } catch (error) {
     showNotice(error.message, true);
   } finally {
@@ -2071,6 +2298,9 @@ document.querySelector('#confirm-clear-history').addEventListener('click', () =>
   mapHistory.length = 0;
   renderHistory();
   clearHistoryConfirmDialog.close('confirmed');
+});
+confirmDeleteHistoryButton.addEventListener('click', () => {
+  historyDeleteConfirmDialog.close('delete');
 });
 document.querySelectorAll('.fleet-load').forEach(button => button.addEventListener('click', () => {
   loadTarget = button.dataset.side;
@@ -2095,7 +2325,7 @@ configFileInput.addEventListener('change', async () => {
       });
       if (!window.WSGRMapConfig || !window.WSGRMapEditor) throw new Error('地图编辑器尚未就绪');
       window.WSGRMapConfig.setFriendFleet(config.friend_fleet);
-      window.WSGRMapEditor.loadDocument(mapPayload.map);
+      window.WSGRMapEditor.loadDocument(mapPayload.map, mapPayload.mapid || mapid);
       window.WSGRMapEditor.loadUserRules(config.user_rules);
       showPrimaryPage('map');
       showNotice('地图配置、我方舰队与对应海图已载入');
@@ -2128,7 +2358,7 @@ async function exportConfig(config) {
 
 function confirmMapSave(mapid) {
   return new Promise(resolve => {
-    mapSaveConfirmMessage.textContent = `项目地图目录中没有“${mapid}.yaml”。是否先保存当前地图，再生成配置文件？`;
+    mapSaveConfirmMessage.textContent = `项目地图目录中没有“depend/map/${mapid}.yaml”。是否先保存当前地图，再生成配置文件？`;
     mapSaveConfirmDialog.addEventListener('close', () => {
       resolve(mapSaveConfirmDialog.returnValue === 'save');
     }, { once: true });
@@ -2139,7 +2369,7 @@ function confirmMapSave(mapid) {
 async function saveMapConfig() {
   if (!window.WSGRMapConfig || !window.WSGRMapEditor) throw new Error('地图编辑器尚未就绪');
   const map = window.WSGRMapEditor.getDocument();
-  const mapid = String(map?.mapid || '').trim();
+  const mapid = String(window.WSGRMapEditor.getMapRef() || '').trim();
   if (!mapid) throw new Error('地图名称不能为空');
   const existing = await api('/api/map/exists', {
     method: 'POST', body: JSON.stringify({ mapid }),
@@ -2147,7 +2377,7 @@ async function saveMapConfig() {
   if (!existing.exists) {
     const shouldSave = await confirmMapSave(mapid);
     if (!shouldSave) return false;
-    await api('/api/map/save', { method: 'POST', body: JSON.stringify({ map }) });
+    await api('/api/map/save', { method: 'POST', body: JSON.stringify({ map, mapid }) });
   }
   await exportConfig({
     battle_type: 'Map',

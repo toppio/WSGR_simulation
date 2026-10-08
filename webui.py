@@ -40,9 +40,25 @@ class WebUIRequestHandler(SimpleHTTPRequestHandler):
         if path == "/api/map-simulation/status":
             self._send_json(self.service.map_simulations.snapshot())
             return
+        if path == "/api/simulation/settings":
+            try:
+                self._send_json(self.service.simulation_settings())
+            except (TypeError, ValueError) as exc:
+                self._send_json({"error": str(exc)}, HTTPStatus.BAD_REQUEST)
+            except Exception as exc:
+                self._send_json({"error": str(exc)}, HTTPStatus.INTERNAL_SERVER_ERROR)
+            return
         if path == "/api/environment/settings":
             try:
                 self._send_json(self.service.environment_settings())
+            except (TypeError, ValueError) as exc:
+                self._send_json({"error": str(exc)}, HTTPStatus.BAD_REQUEST)
+            except Exception as exc:
+                self._send_json({"error": str(exc)}, HTTPStatus.INTERNAL_SERVER_ERROR)
+            return
+        if path == "/api/map/list":
+            try:
+                self._send_json(self.service.list_maps())
             except (TypeError, ValueError) as exc:
                 self._send_json({"error": str(exc)}, HTTPStatus.BAD_REQUEST)
             except Exception as exc:
@@ -68,6 +84,11 @@ class WebUIRequestHandler(SimpleHTTPRequestHandler):
             if path == "/api/map/fleet-summary":
                 self._send_json(self.service.map_enemy_fleet_summary(payload["fleet"]))
                 return
+            if path == "/api/simulation/settings":
+                self._send_json(
+                    self.service.update_simulation_settings(payload["settings"])
+                )
+                return
             if path == "/api/environment/settings":
                 self._send_json(
                     self.service.update_environment_settings(payload["settings"])
@@ -86,6 +107,7 @@ class WebUIRequestHandler(SimpleHTTPRequestHandler):
                 self._send_json(
                     self.service.save_map_document(
                         payload["map"],
+                        mapid=payload.get("mapid"),
                         overwrite=bool(payload.get("overwrite", False)),
                     )
                 )

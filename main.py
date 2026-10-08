@@ -17,8 +17,28 @@ from src.utils.runUtil import *
 from src.wsgr.wsgrTimer import timer
 from src.wsgr.formulas import *
 
+configDir = os.path.join(os.path.dirname(srcDir), 'config')
+dependDir = os.path.join(os.path.dirname(srcDir), 'depend')
+data_file = os.path.join(dependDir, r'ship/database.xlsx')
+mapDir = os.path.join(dependDir, r'map')
+ds = None  # 舰船数据；首次使用时加载
 
-def main(infile, epoch, battle_num, fun, **kwargs):
+
+def get_dataset():
+    """延迟加载 database.xlsx。
+
+    spawn 平台（Windows）启动子进程时会重新执行本模块的顶层代码，若在这里
+    直接 Dataset(...)，每个子进程都要白白解析一次 Excel（1-2 秒）。
+    """
+    global ds
+    if ds is None:
+        ds = Dataset(data_file)
+    return ds
+
+
+def main(infile, epoch, battle_num, fun, worker=1, **kwargs):
+    """worker: 并行进程数。1 表示串行；>=2 且 epoch >= 1000 时切分给多个进程"""
+    dataset = get_dataset()
     timer_init = timer()  # 创建时钟
     if infile.endswith('.xml'):
         battleConfig = load_xml(infile, mapDir)
@@ -26,7 +46,7 @@ def main(infile, epoch, battle_num, fun, **kwargs):
         battleConfig = load_yaml(infile, mapDir)
     else:
         raise Exception(f"未许可的文件后缀'{os.path.splitext(infile)[1]}'")
-    battle = load_config(battleConfig, mapDir, ds, timer_init)  # 加载战斗配置
+    battle = load_config(battleConfig, mapDir, dataset, timer_init)  # 加载战斗配置
     # for ship in battle.enemy.ship:  # 属性修改
     #     ship.status['armor'] = 180
     #     ship.status['fire'] = 200
@@ -38,24 +58,20 @@ def main(infile, epoch, battle_num, fun, **kwargs):
     # battle.friend.ship[4].status['fire'] += fire
     set_supply(battle, battle_num)
     prebattle_info(battle)
-    fun(battle, epoch, **kwargs)
+    fun(battle, epoch, worker=worker,
+        battle_source=(battleConfig, mapDir, dataset, battle_num), **kwargs)
 
-
-configDir = os.path.join(os.path.dirname(srcDir), 'config')
-dependDir = os.path.join(os.path.dirname(srcDir), 'depend')
-data_file = os.path.join(dependDir, r'ship/database.xlsx')
-mapDir = os.path.join(dependDir, r'map')
-ds = Dataset(data_file)  # 舰船数据
 
 if __name__ == '__main__':
     epoch = 10000
+    worker = 1  # 并行进程数
     battle_num = 1  # 战斗轮次
     supportFlag = False  # todo 是否使用支援攻击
     fun = run_victory
     configFile = os.path.join(configDir, r'config_map_test.yaml')
     # configFile = os.path.join(configDir, r'event/config_1_2.xml')
     # configFile = os.path.join(configDir, r'config.xml')
-    main(configFile, epoch, battle_num, fun)
+    main(configFile, epoch, battle_num, fun, worker=worker)
 
     # for fire in range(10, 40, 10):
     #     main(configFile, epoch, battle_num, fun, fire=fire)

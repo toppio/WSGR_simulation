@@ -112,11 +112,11 @@ class Skill_111231_3(CommonSkill):
         def raise_night_atk(ship, target_fleet):
             # 夜战预留，与白天一致，中破/大破只进行夜战反潜
             if ship.damaged in (2, 3):
-                night_atk = ship.night_anti_sub_atk
-                if night_atk is not None:
-                    def_list = target_fleet.get_atk_target(atk_type=night_atk)
+                night_anti_sub_atk = ship.night_anti_sub_atk
+                if night_anti_sub_atk is not None:
+                    def_list = target_fleet.get_atk_target(atk_type=night_anti_sub_atk)
                     if len(def_list):
-                        yield night_atk(
+                        yield night_anti_sub_atk(
                             timer=ship.timer,
                             source=ship,
                             def_list=def_list,

@@ -1,0 +1,10 @@
+simulation:
+  workers: 4
+recon: null
+engineering: true
+collections: []
+dish: null
+car:
+  name: null
+  country: ''
+extras: []

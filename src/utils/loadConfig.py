@@ -16,23 +16,73 @@ import src.wsgr.equipment as requip
 from src import skillCode
 
 
-# A map id is also part of the standalone map filename.  Keep ordinary names
-# (including Chinese and spaces) intact, while rejecting path traversal and
-# characters that cannot be used in a filename on Windows.
-INVALID_MAP_ID_PATTERN = re.compile(r'[<>:"/\\|?*\x00-\x1f]')
+# A map reference is a POSIX-style relative path below the map directory, and
+# every path segment is also a filename segment.  Keep ordinary names
+# (including Chinese and spaces) intact, while rejecting path traversal,
+# absolute paths and characters that cannot be used in a filename on Windows.
+INVALID_MAP_SEGMENT_PATTERN = re.compile(r'[<>:"/\\|?*\x00-\x1f]')
+WINDOWS_DRIVE_PATTERN = re.compile(r'^[A-Za-z]:')
+
+
+def normalize_map_ref(mapid: str) -> str:
+    """Normalize a map reference into a POSIX relative path below the map root."""
+    normalized = str(mapid).strip().replace('\\', '/')
+    if not normalized:
+        raise ValueError(f'Invalid mapid: {mapid!r}')
+    if normalized.startswith('/') or WINDOWS_DRIVE_PATTERN.match(normalized):
+        raise ValueError(f'Map path must be relative to the map directory: {mapid!r}')
+    for segment in normalized.split('/'):
+        if segment in {'', '.', '..'}:
+            raise ValueError(f'Invalid map path segment in mapid: {mapid!r}')
+        if INVALID_MAP_SEGMENT_PATTERN.search(segment) or segment.endswith(('.', ' ')):
+            raise ValueError(f'Invalid map path segment in mapid: {mapid!r}')
+    return normalized
+
+
+def map_ref_leaf(mapid: str) -> str:
+    """Return the filename part of a map reference."""
+    return normalize_map_ref(mapid).rsplit('/', 1)[-1]
+
+
+def _verify_map_path(path: str, mapDir: str) -> None:
+    """Defense in depth: a resolved map path must stay below the map directory."""
+    root = os.path.realpath(mapDir)
+    target = os.path.realpath(path)
+    try:
+        inside = os.path.commonpath([root, target]) == root
+    except ValueError:  # different drives on Windows
+        inside = False
+    if not inside:
+        raise ValueError(f'Map path escapes the map directory: {path!r}')
 
 
 def map_yaml_path(mapid: str, mapDir: str) -> str:
-    """Return the canonical standalone YAML path for a map id."""
-    normalized = str(mapid).strip()
-    if normalized in {'.', '..'} or INVALID_MAP_ID_PATTERN.search(normalized) \
-            or normalized.endswith(('.', ' ')):
-        raise ValueError(f'Invalid mapid: {mapid!r}')
-    return os.path.join(mapDir, f'{normalized}.yaml')
+    """Return the canonical standalone YAML path for a map reference.
+
+    ``mapid`` may name a category folder chain (``活动/2024夏活/E5``); the leaf
+    segment is the file name and the extension is always added by this helper.
+    """
+    segments = normalize_map_ref(mapid).split('/')
+    path = os.path.join(mapDir, *segments[:-1], f'{segments[-1]}.yaml')
+    _verify_map_path(path, mapDir)
+    return path
+
+
+def map_xml_path(mapid: str, mapDir: str) -> str:
+    """Return the path of a legacy XML map; those only live in the map root."""
+    normalized = normalize_map_ref(mapid)
+    if '/' in normalized:
+        raise ValueError(f'Legacy XML maps only support the map root: {mapid!r}')
+    return os.path.join(mapDir, f'mapid{normalized}.xml')
 
 
 def load_map_yaml(mapid: str, mapDir: str) -> dict:
-    """Load a standalone map document containing nodes, routes and fleets."""
+    """Load a standalone map document containing nodes, routes and fleets.
+
+    The document's own ``mapid`` field holds the leaf name only, so a map file
+    stays valid when it is moved to another category folder.
+    """
+    leaf = map_ref_leaf(mapid)
     map_file = map_yaml_path(mapid, mapDir)
     if not os.path.exists(map_file):
         raise FileNotFoundError(f"Map file '{map_file}' not found!")
@@ -41,10 +91,10 @@ def load_map_yaml(mapid: str, mapDir: str) -> dict:
     if not isinstance(map_config, dict):
         raise ValueError(f"Map file '{map_file}' must contain an object")
     file_mapid = str(map_config.get('mapid', '')).strip()
-    if file_mapid != str(mapid).strip():
+    if file_mapid != leaf:
         raise ValueError(
             f"Map file '{map_file}' declares mapid {file_mapid!r}, "
-            f"expected {str(mapid).strip()!r}"
+            f"expected {leaf!r}"
         )
     if not isinstance(map_config.get('nodes'), list) or \
             not isinstance(map_config.get('routes'), list):
@@ -120,7 +170,7 @@ def load_xml(infile: str, mapDir: str) -> dict:
     else:
         map_root = root.getElementsByTagName('Map')[0]
         mapid = map_root.getAttribute('mapid')
-        map_xml = os.path.join(mapDir, 'mapid' + mapid + '.xml')
+        map_xml = map_xml_path(mapid, mapDir)
         if not os.path.exists(map_xml):
             raise FileNotFoundError(f"Map file '{map_xml}' not found!")
     battleConfig = {'battle_type': battle_type}
@@ -272,14 +322,19 @@ def load_map(
         mapDict, mapDir, dataset, timer, friend, map_document=None, user_rules=None,
         log_func=print,
 ):
-    mapid = str(mapDict['mapid']).strip()
+    map_ref = normalize_map_ref(mapDict['mapid'])
+    leaf = map_ref.rsplit('/', 1)[-1]
     if map_document is not None:
         if not isinstance(map_document, dict):
             raise ValueError('Temporary map document must be an object')
         document_mapid = str(map_document.get('mapid', '')).strip()
-        if document_mapid != mapid:
+        if not document_mapid:
+            raise ValueError('Temporary map document must define mapid')
+        # The editor keeps the category folders outside the document, so the
+        # temporary document matches the config reference by leaf name only.
+        if map_ref_leaf(document_mapid) != leaf:
             raise ValueError(
-                f'Temporary mapid {document_mapid!r} does not match config mapid {mapid!r}'
+                f'Temporary mapid {document_mapid!r} does not match config mapid {map_ref!r}'
             )
         return MapUtil(
             timer, map_document, dataset, friend,
@@ -289,19 +344,18 @@ def load_map(
 
     if mapDict.get('_format') != 'xml':
         return MapUtil(
-            timer, load_map_yaml(mapid, mapDir), dataset, friend,
+            timer, load_map_yaml(map_ref, mapDir), dataset, friend,
             user_rules=user_rules,
             log_func=log_func,
         )
 
     entrance_id = int(mapDict.get('entrance', 0))
-    map_xml = os.path.join(mapDir, 'mapid'+mapid+'.xml')
-    map_dom = xml.dom.minidom.parse(map_xml)
+    map_dom = xml.dom.minidom.parse(map_xml_path(map_ref, mapDir))
     root = map_dom.documentElement
     entrance = root.getElementsByTagName('entrance')[entrance_id]
 
     return MapUtil(
-        timer, load_map_xml(entrance, dataset, mapid), dataset, friend,
+        timer, load_map_xml(entrance, dataset, map_ref), dataset, friend,
         user_rules=user_rules,
         log_func=log_func,
     )

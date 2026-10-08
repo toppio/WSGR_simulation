@@ -3,6 +3,7 @@
 # env:py38
 # 时统
 
+import copy
 import numpy as np
 
 
@@ -36,7 +37,6 @@ class timer:
         self.atk = None
         self.env_skill = []         # 环境效果
         self.map_env_effect_ids = set()  # Current-map effects must persist across point battle reinitialization.
-        self.end_skill = []         # 结束阶段技能
         self.queue = {              # 有时点依赖的技能
             'magnet': [],           # 嘲讽
             'tank': [],             # 挡枪
@@ -108,10 +108,10 @@ class timer:
                     tmp_skill.is_active(friend, enemy):
                 tmp_skill.activate(friend, enemy)
 
-    def run_end_skill(self, friend, enemy):
-        """结算结束阶段技能"""
-        for tmp_skill in self.end_skill:
-            tmp_skill.activate(friend, enemy)
+    # def run_end_skill(self, friend, enemy):
+    #     """结算结束阶段技能"""
+    #     for tmp_skill in self.end_skill:
+    #         tmp_skill.activate(friend, enemy)
 
     def get_dist(self):
         """距离起始点的位置"""
@@ -162,6 +162,16 @@ class timer:
         })
         for key in self.queue.keys():
             self.queue.update({key: []})
+
+    def refresh(self):
+        """把时统刷新成与「刚新建」完全一致的状态，用于下一局模拟。
+
+        与 reinit() 的区别：reinit() 是"出征内换节点"，会保留 point、env_skill、
+        map_env_effect_ids、supply、record 等出征级状态；这里要的是"重新开一局"，
+        所以直接按 __init__ 重建全部字段。log 会被换成新字典，因此此前 report()
+        返回的旧日志对象不会被后续一局改写。
+        """
+        self.__init__()
 
     def phase_start(self):
         self.phase.start()
@@ -240,8 +250,41 @@ class timer:
 
 
 class Time:
+    """战斗内一切持有时统的对象的基类。"""
+
+    _KEEP = ('_snapshot',)   # 不参与属性复制的保留键
+
     def __init__(self, timer: timer):
         self.timer = timer
+        self._snapshot = None
 
     def set_timer(self, new_timer: timer):
         self.timer = new_timer
+
+    def mark_snapshot(self):
+        """记下初始状态（只记一次）
+        。
+        Time 同时承担「每局复位」：
+        一局模拟结束后要把对象图恢复成「刚 load_config 完」的状态，才能用它跑下一局。
+        做法是「浅层 __dict__ 快照 + 容器复制一层」，只读的类引用与配置字典仍被共享，只有需要独立的可变容器才复制
+
+        只有两个行为，都可直接无参调用：
+        - `mark_snapshot()` 记下初始状态（只记一次，务必发生在对象被改动之前）；
+        - `rewind_snapshot()` 恢复成该状态。
+
+        持有子对象的子类（Ship 带装备、Fleet 带舰船、BattleUtil/MapUtil 带舰队与海图节点）
+        重写这两个方法，先 `super()` 再让子对象各自 mark_snapshot()/rewind_snapshot()。"""
+        if self._snapshot is None:
+            self._snapshot = {
+                key: copy.copy(value) if isinstance(value, (list, dict, set)) else value
+                for key, value in self.__dict__.items()
+                if key not in self._KEEP
+            }
+        return self._snapshot
+
+    def rewind_snapshot(self):
+        """恢复成 mark_snapshot() 记下的状态。"""
+        if self._snapshot is None:
+            raise RuntimeError(f'{type(self).__name__}: 尚未 mark_snapshot()，无法 rewind_snapshot()')
+        for key, value in self._snapshot.items():
+            self.__dict__[key] = copy.copy(value) if isinstance(value, (list, dict, set)) else value

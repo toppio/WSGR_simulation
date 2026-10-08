@@ -271,6 +271,8 @@ class DefaultUserRules(UserRules):
 class MapUtil(Time):
     """地图调用基类"""
 
+    _KEEP = Time._KEEP + ('point',)  # point 是海图结构（节点图），出征过程中不会被改动，无需进快照
+
     def __init__(self, timer, map_config, dataset, friend, user_rules=None, log_func=print):
         super().__init__(timer)
         self.friend = friend
@@ -283,6 +285,29 @@ class MapUtil(Time):
             if user_rules is not None else DefaultUserRules(self.point)
         for point in self.point.values():
             point.set_user_rules(self.user_rules)
+
+    def mark_snapshot(self):
+        """记录出征前的初始状态（友方舰队 + 各节点预存的敌方舰队）。"""
+        snapshot = super().mark_snapshot()
+        self.friend.mark_snapshot()
+        for point in self.point.values():
+            for enemy in point.enemy_list:
+                enemy.mark_snapshot()
+        return snapshot
+
+    def rewind_snapshot(self):
+        """复位到初始状态，用于下一次出征。"""
+        # 首次调用时海图还处在初始状态，只需记下快照
+        if self._snapshot is None:
+            self.mark_snapshot()
+            return
+        self.timer.refresh()
+        super().rewind_snapshot()
+        self.friend.rewind_snapshot()
+        for point in self.point.values():
+            point.battle = None   # 只做清理，避免继续持有上一局的战斗对象
+            for enemy in point.enemy_list:
+                enemy.rewind_snapshot()
 
     def init_map(self, map_config, dataset):
         """根据传入的字典结构和数据库，构建海图"""
@@ -452,6 +477,7 @@ class MapUtil(Time):
         return load_enemy_ship(ship_config, dataset, timer, log_func=self.log_func)
 
     def start(self):
+        self.mark_snapshot()   # 任何首次改动之前先记下初始状态
         name = self.entrance_name
         path = []
         self.timer.report_log('map_battles', [])

@@ -9,3 +9,4 @@ from . import sid030011  # 高雄
 from . import sid030051  # CVS
 from . import sid030111  # 雾岛
 from . import sid030121  # I-400&I-402
+from . import sid011121  # 深海大凤(晴空万里)

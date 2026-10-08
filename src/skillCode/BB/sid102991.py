@@ -31,7 +31,17 @@ class Skill_102991_1(Skill):
 class Skill_102991_2(PrepSkill):
     """战斗中随机选择我方任意一艘自身以外的中、大型船，获得其技能
     如果这个技能包含有概率发动的效果，则变为100%发动。"""
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
+        self.copy_skill = []  # 复制来的普通技能(每节点重算，见 activate)
+
     def activate(self, friend, enemy):
+        # 清除上一战斗节点复制的技能
+        for tmp_skill in self.copy_skill:
+            if tmp_skill in self.master.skill:
+                self.master.skill.remove(tmp_skill)
+        self.copy_skill = []
+
         # 自身以外的中、大型船
         mid_large = TypeTarget(
             side=1,
@@ -46,9 +56,17 @@ class Skill_102991_2(PrepSkill):
         _skill = target.get_raw_skill()  # 获得其技能
         for skillClass in _skill:
             tmp_skill = skillClass(self.timer, self.master)
+            if tmp_skill.is_end_skill():  # 结束阶段技能不复制
+                continue
             tmp_skill.change_rate(1)  # 变为100%发动
-            if tmp_skill.is_active(friend, enemy):
-                tmp_skill.activate(friend, enemy)
+            if tmp_skill.is_prep():
+                # 准备阶段技能(buff在准备阶段结算)，直接发动
+                if tmp_skill.is_active(friend, enemy):
+                    tmp_skill.activate(friend, enemy)
+            else:
+                # 普通技能交由其自身阶段(buff阶段)结算，此时航向等信息已确定
+                self.master.skill.append(tmp_skill)
+                self.copy_skill.append(tmp_skill)
 
 
 name = '旁观者'

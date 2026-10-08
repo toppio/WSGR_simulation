@@ -25,6 +25,7 @@ from . import sid115751  # 威武改-1
 from . import sid115091  # 谦逊改-1
 from . import sid116181  # 米切尔改-1
 from . import sid106401  # 考文垂-1
+from . import sid106561  # 布里斯托尔-1
 
 # 导巡
 from . import sid105331  # 格罗兹尼-1

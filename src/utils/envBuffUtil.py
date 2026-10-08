@@ -470,7 +470,8 @@ curDir = os.path.dirname(__file__)
 srcDir = os.path.dirname(curDir)
 dependDir = os.path.join(os.path.dirname(srcDir), 'depend')
 data_file = os.path.join(dependDir, r'environment/environment.xlsx')
-user_settings_file = os.path.join(dependDir, r'environment/user_settings.yaml')
+# 用户设置（环境加成 + 模拟设置）统一放在 depend/user_settings.yaml
+user_settings_file = os.path.join(dependDir, r'user_settings.yaml')
 _configured_env = load_env_buffs(data_file, user_settings_file)
 env = _configured_env.copy()
 env += []

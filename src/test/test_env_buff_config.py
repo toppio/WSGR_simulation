@@ -1,4 +1,6 @@
 # -*- coding:utf-8 -*-
+# Author:银河远征(Agent supported)
+# env:py38
 
 from types import SimpleNamespace
 import unittest

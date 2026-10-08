@@ -30,7 +30,8 @@ __all__ = ['ATK',
            'NightTorpedoAtk',
            'NightMissileAtk',
            'NightAirAtk',
-           'NightAntiSubAtk'
+           'NightAntiSubAtk',
+           'NightAirAntiSubAtk',
            ]
 
 
@@ -1262,21 +1263,6 @@ class AirNormalAtk(NormalAtk, AirAtk):
     def base_hit_rate(self):
         """航空攻击基础命中率"""
         return AirStrikeAtk.base_hit_rate.fget(self)
-        # accuracy = self.source.get_final_status('accuracy')
-        # aa_value = 0.4 * self.get_anti_air_def()
-        # if self.target.size == 3:
-        #     aa_mult = .2
-        # elif self.target.size == 2:
-        #     aa_mult = .8
-        # else:
-        #     aa_mult = 2
-        # hit_rate = accuracy / max(1, aa_value * aa_mult + accuracy)
-        # return hit_rate
-
-    # @property
-    # def hit_shipsize_coef(self):
-    #     """船型补正闪避系数"""
-    #     return NormalAtk.hit_shipsize_coef.fget(self)
 
     def process_coef(self):
         # 制空系数
@@ -1522,7 +1508,7 @@ class NightAirAtk(NightAtk, AirNormalAtk):
         self.pierce_base = 1.  # 穿甲基础值
 
 
-class NightAntiSubAtk(AntiSubAtk, NightAtk):
+class NightAntiSubAtk(NightAtk, AntiSubAtk):
     """夜战反潜"""
 
     def __init__(self, timer, source, def_list, coef=None, target=None):
@@ -1548,6 +1534,16 @@ class NightAntiSubAtk(AntiSubAtk, NightAtk):
                     self.coef['crit_coef'] *
                     self.coef['random_coef'])
         return real_atk
+
+
+class NightAirAntiSubAtk(NightAtk, AirAntiSubAtk):
+    """夜战航空反潜"""
+
+    def __init__(self, timer, source, def_list, coef=None, target=None):
+        super().__init__(timer, source, def_list, coef, target)
+        self.atk_name = '夜战航空反潜攻击'
+        self.random_range = [1.2, 1.5]  # 浮动系数上下限
+        self.pierce_base = 10  # 穿甲基础值
 
 
 def cap(x):
